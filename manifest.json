@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
 
-  "name": "TimeForge Helper",
+  "name": "TimeForge Buddy",
   "description": "Adds extra functionality to TimeForge",
   "version": "0.1",
   
@@ -17,6 +17,7 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+	"storage"
   ]
 }
