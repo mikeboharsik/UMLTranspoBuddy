@@ -5,7 +5,8 @@
     <style>
       body {
         font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
-        font-size: 100%;
+        font-size: 12px;
+		width: 200px;
       }
       #status {
         /* avoid an excessively wide status text */
@@ -15,13 +16,15 @@
         max-width: 400px;
       }
     </style>
-    <script src="popup.js"></script>
   </head>
   <body>
-    <input type="checkbox" /><br />
+	<span style="font-size:14px">TimeForge Buddy Settings</span><br />
+    <input type="checkbox" id="supervisor">Supervisor<br />
 	<input type="checkbox" /><br />
 	<input type="checkbox" /><br />
 	<input type="checkbox" />
+	
+	<script src="popup.js"></script>
   </body>
 </html>
 

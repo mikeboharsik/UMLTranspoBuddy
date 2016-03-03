@@ -1,7 +1,3 @@
-chrome.storage.local.get( "test", function( data ) { console.log( data ); } );
-chrome.storage.local.clear();
-chrome.storage.local.get( "test", function( data ) { console.log( data ); } );
-
 /* BEGIN FORWARD DECLARATIONS */
 
 var monthYearString;
