@@ -578,7 +578,9 @@ function getPage(){
 var expires = new Date();
 expires.setYear( expires.getYear() + 1900 + 1 );
 
-document.getElementsByClassName( "content" )[0].className = "content accordian";
+var acc = document.getElementsByClassName( "content" )[0];
+if ( acc )
+	acc.className = "content accordian";
 
 function showNumbers(){
     $("body").addClass("showLabels");
@@ -663,10 +665,8 @@ switch ( getPage() ){
 		addPickUpShiftsLink();
 		addPickUpShiftsDropdown();
 		
-		// broken export functions
-		//addButton();
-		//addCheckBoxes();
-		console.log( "Export functionality broken, disabled" );
+		addButton();
+		addCheckBoxes();
 		break;
 		
 	case "attendance":
