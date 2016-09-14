@@ -380,7 +380,7 @@ function generateCSV(){
 	}
 }
 
-function handleButtonClick(){
+function handleButtonClick(){	
 	isSupervisor ? generateCSV() : generateCSVUnderling();
 }
 
@@ -415,12 +415,17 @@ function addCheckBoxes(){
 }
 
 function getCheckedBoxes(){
-	var checkBoxes = document.getElementById( "checkBoxes" ).getElementsByTagName( "input" );
+	var checkBoxes = document.getElementById( "checkBoxes" )
 	var checked = [];
-	for ( var i = 0; i < checkBoxes.length; i++ ){
-		if ( checkBoxes[i].checked )
-			checked.push( i );
+	if ( checkBoxes ){
+		var inputs = checkBoxes.getElementsByTagName( "input" );
+		for ( var i = 0; i < inputs.length; i++ ){
+			if ( inputs[i].checked )
+				checked.push( i );
+		}
 	}
+	else
+		checked = [ 0, 1, 2, 3, 4 ];
 	return checked;
 }
 
@@ -431,7 +436,7 @@ function urlContains( tar ){
 }
 
 function getPage(){
-	if ( urlContains( "employeeSchedules" ) || urlContains( "Scheduler/sa/index" ) ){
+	if ( urlContains( "employeeSchedules" ) || ( !isSupervisor && urlContains( "Scheduler/sa/index" ) ) ){
 		return "calendar";
 	}
 	else if ( urlContains( "bulkEnterAttendance" ) ){
@@ -524,30 +529,28 @@ var isSupervisor = false;
 
 chrome.storage.local.get( "isSupervisor", function(data){ 
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
-});
-
-setTimeout( function(){
+	
 	switch ( getPage() ){
-		case "calendar":
-			if ( isSupervisor ){
-				setCalendarDateInfo();
-				calculateDailyTotals();
-				calculateWeeklyTotals();
-				addPickUpShiftsLink();
-				addPickUpShiftsDropdown();
-				addCheckBoxes();
-			}
-			addButton();
-			break;
-			
-		case "routes":
-			chrome.storage.local.get( "roadsterEnabled", function( data ) {
-				if ( data.roadsterEnabled == true ) 
-					doRoadsterStuff();
-			});
-			break;
-			
-		default:
-			console.log( "Encountered an unhandled URL." );
+	case "calendar":
+		addButton();
+		if ( isSupervisor ){
+			setCalendarDateInfo();
+			calculateDailyTotals();
+			calculateWeeklyTotals();
+			addPickUpShiftsLink();
+			addPickUpShiftsDropdown();
+			addCheckBoxes();
+		}
+		break;
+		
+	case "routes":
+		chrome.storage.local.get( "roadsterEnabled", function( data ) {
+			if ( data.roadsterEnabled == true ) 
+				doRoadsterStuff();
+		});
+		break;
+		
+	default:
+		console.log( "Encountered an unhandled URL." );
 	}
-}, 1000 );
+});
