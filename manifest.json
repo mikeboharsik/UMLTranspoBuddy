@@ -3,7 +3,7 @@
 
   "name": "TimeForge Buddy",
   "short_name": "TFBuddy",
-  "description": "Adds extra functionality to TimeForge",
+  "description": "Adds extra functionality to TimeForge (and RoadsterRoutes)",
   "version": "0.1",
   
   "icons": { 

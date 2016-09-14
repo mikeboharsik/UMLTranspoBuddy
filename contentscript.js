@@ -264,6 +264,74 @@ function addDays( d, n ){
 	return nd;
 }
 
+Date.prototype.addDays = function(days){
+	var nd = new Date( this.valueOf() );
+	nd.setDate( nd.getDate() + days );
+	return nd;
+}
+
+function generateCSVUnderling(){
+	var Events = [];
+	
+	var days = document.getElementsByClassName( "divContend" );
+
+	for ( day of days ){
+		var sched = day.getElementsByTagName( "span" )[0];
+		var id = sched.id;
+		var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
+		
+		var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
+		if ( box ){	
+			var time = box.childNodes[0].textContent;
+			var start = time.substring( 0, time.indexOf( '-' ) );
+			var end = time.substring( time.indexOf( '-' ) + 1, time.length );
+			var position = box.childNodes[2].textContent.trim();
+			
+			var dy = d.getFullYear();
+			var dm = d.getMonth() + 1;
+			var dd = d.getDate();
+			
+			Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+		}
+	}
+
+	var outString = "Subject,Start Date,Start Time,End Date,End Time\n";		
+	for ( var i = 0; i < Events.length; i++ ){
+		var cur = Events[i];
+		var subject = cur.description + ",";
+		var startDate = cur.month.toString() + "/" + cur.date.toString() +
+						"/" + cur.year.toString() + ",";
+		var startTime = cur.startTime.toString() + ",";
+		
+		var endDate;
+		
+		if ( cur.startTime.indexOf( "PM" ) != -1 && cur.endTime.indexOf( "AM" ) != -1 ){
+			var tempDate = new Date( startDate );
+			tempDate = tempDate.addDays( 1 );
+			endDate = (tempDate.getMonth() + 1).toString() + "/" + 
+					tempDate.getDate().toString() + "/" + cur.year.toString() + ",";
+		}
+		else
+			endDate = startDate;
+		
+		var endTime = cur.endTime.toString() + "\n";
+
+		outString = outString.concat( subject.concat( 
+			startDate.concat( startTime.concat( endDate.concat( endTime ) ) ) ) );
+	}
+
+	var blob = new Blob( [outString], { type: "text/html" } );
+	var url = window.URL.createObjectURL( blob );
+	var a = document.createElement( "a" );
+	a.download = "schedule.csv";
+	a.href = url;
+	a.click();
+	window.URL.revokeObjectURL( url );
+	a = null;
+	url = null;
+	blob = null;
+}
+
 function generateCSV(){
 	labelWeekRows();
 	markAllBoxes();
@@ -273,7 +341,7 @@ function generateCSV(){
 		console.error( "No events to generate a CSV for!" );
 	}
 	else{
-		var outString = "Subject,Start Date,Start Time, End Date, End Time\n";
+		var outString = "Subject,Start Date,Start Time,End Date,End Time\n";
 		
 		for ( var i = 0; i < Events.length; i++ ){
 			var cur = Events[i];
@@ -306,7 +374,14 @@ function generateCSV(){
 		a.href = url;
 		a.click();
 		window.URL.revokeObjectURL( url );
+		a = null;
+		url = null;
+		blob = null;
 	}
+}
+
+function handleButtonClick(){
+	isSupervisor ? generateCSV() : generateCSVUnderling();
 }
 
 function addButton(){
@@ -314,7 +389,7 @@ function addButton(){
 	var exportButton = document.createElement( "a" );
 	exportButton.innerHTML = "Export CSV";
 	exportButton.style.cursor = "pointer";
-	exportButton.addEventListener( "click", generateCSV );
+	exportButton.addEventListener( "click", handleButtonClick );
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
 }
 
@@ -351,218 +426,12 @@ function getCheckedBoxes(){
 
 /* END SCHEDULE EXPORT */
 
-/* BEGIN ATTENDANCE FILLER */
-
-function EmployeeName( fname, lname, value ){
-	this.fname = fname;
-	this.lname = lname;
-	this.value = value;
-	this.altnames = [];
-	
-	this.name = function(){
-		return this.fname + " " + this.lname;
-	}
-	
-	this.oname = function(){
-		return this.lname + ", " + this.fname;
-	}
-	
-	this.rname = function(){
-		return this.fname + ", " + this.lname;
-	}
-}
-
-function Employee( name, start, end, position ){
-	if ( end === undefined || end === null )
-		end = "";
-	
-	this.name = name;
-	this.start = start;
-	this.end = end;
-	this.position = position.toUpperCase();
-}
-
-function getHighest(){
-	var i = 1;
-	while ( (cur = document.getElementById( "emp" + i )) != null )
-		i++;
-		
-	return i - 1;
-}
-
-function getHighestRow(){
-	return document.getElementById( "row" + getHighest() );
-}
-
-function loadNames(){
-	Names = [];
-	var tmp = document.getElementById( "emp1" );
-	tmp = tmp.options;
-	for ( var i = 0; i < tmp.length; i++ ){
-		if ( tmp[i].innerHTML.indexOf( "," ) != -1 ){
-			var names = tmp[i].innerHTML.split( "," );
-			var fname = names[1].trim().toUpperCase();
-			var lname = names[0].trim().toUpperCase();
-			var value = tmp[i].value;
-			Names.push( new EmployeeName( fname, lname, value ) );
-		}
-	}
-}
-
-function loadEntered(){
-	Entered = [];
-	var highest = getHighest();
-	for ( var i = 1; i < highest; i++ ){
-		var cur = document.getElementById( "emp" + i ).selectedOptions[0];
-		var names = cur.innerHTML.split( "," );
-		var fname = names[1].trim().toUpperCase();
-		var lname = names[0].trim().toUpperCase();
-		var value = cur.value;
-		Entered.push( new EmployeeName( fname, lname, value ) );
-	}
-}
-
-function getNameStringFromValue( value ){
-	for ( var i = 0; i < Names.length; i++ ){
-		if ( Names[i].value == value )
-			return Names[i].string;
-	}
-	
-	return null;
-}
-
-function getNameValueFromString( string ){
-	if ( string == "--Choose--" )
-		return null;
-	
-	for ( var i = 0; i < Names.length; i++){
-		if ( Names[i].string == string )
-			return Names[i].value;
-	}
-	
-	return null;
-}
-
-function setName( nameBox, name ){
-	var names = nameBox.getElementsByTagName( "option" );
-	var hitvalue = null;
-	for ( var i = 0; i < names.length; i++ ){
-		if ( names[i].innerHTML.toUpperCase().indexOf( name ) != -1 ){
-			nameBox.value = names[i].value;
-			break;
-		}
-	}
-}
-
-function setPosition( positionBox, position ){
-	var positions = positionBox.getElementsByTagName( "option" );
-	var hitvalue = null;
-	for ( var i = 0; i < positions.length; i++ ){
-		if ( positions[i].innerHTML.toUpperCase().indexOf( position ) != -1 ){
-			positionBox.value = positions[i].value;
-			return;
-		}
-	}
-}
-
-function setTimeValue( timeBox, time ){
-	time = time.trim();
-	time = time.replace( /am/g, "AM" ).replace( /pm/g, "PM" );
-	timeBox.value = time;
-}
-
-function getPosition( position ){
-	if ( position.toUpperCase().indexOf( "SUPERVISOR" ) != -1 )
-		return "Shift Supervisor";
-	else if ( position.toUpperCase().indexOf( "DISPATCHER" ) != - 1 )
-		return "Dispatcher";
-	else
-		return "Driver: Night &amp; Weekend Service";
-}
-
-function parseEmployeeList(){
-	Employees = [];
-    
-	var text = document.getElementById( "employeeDump" ).value;
-	text = text.trim().replace( /\n\n/g, "|" ).replace( /\n/g, "|" ).replace( /am/g, "AM" ).replace( /pm/g, "PM" );
-	tokens = text.split( "|" );
-    
-    // expect 5 tokens: name, late, start, end, route
-	
-	for ( var i = 0; i < tokens.length / 5; i++ ){
-		var off = i * 5;
-		var n = tokens[off].split( "," );
-		
-		var name = new EmployeeName( n[1].trim().toUpperCase(), n[0].trim().toUpperCase(), getNameValueFromString( tokens[off] ) );		
-		var late = tokens[off+1];
-		var startTime = tokens[off+2];
-		var endTime = tokens[off+3];
-		var position = tokens[off+4];
-		
-		Employees.push( new Employee( name, startTime, endTime, position ) );
-	}
-    
-	addEmployees();
-}
-
-function editCurrentRow(){
-	var employee = Employees.pop();
-	var n = getHighest();
-	var row = getHighestRow();
-	var nameSelect = document.getElementById( "emp" + n );
-	var positionSelect = document.getElementById( "pos" + n );
-	var startBox = document.getElementById( "start" + n );
-	var endBox = document.getElementById( "end" + n );
-	
-	setName( nameSelect, employee.name.name() );
-	updatePositions( n );    
-    
-	setPosition( positionSelect, employee.position );
-    
-	setTimeValue( startBox, employee.start );
-	setTimeValue( endBox, employee.end );
-	
-	checkModification( n );
-	processLastRowFocus( n );
-}
-
-function addEmployees(){
-	while ( Employees.length > 0 )
-		editCurrentRow();
-}
-
-function addAttendanceParser(){
-	if ( document.getElementById( "employeeDump" ) == null ){
-		var textarea = document.createElement( "textarea" );
-		textarea.style.width = "800px";
-		textarea.style.height = "32px";
-		textarea.id = "employeeDump";
-		document.body.appendChild( textarea );
-		document.body.appendChild( document.createElement( "br" ) );
-	}
-
-	if ( document.getElementById( "parseButton" ) == null ){
-		var parsebutton = document.createElement( "input" );
-		parsebutton.type = "button";
-		parsebutton.value = "Parse Employees";
-		parsebutton.id = "parseButton";
-		parsebutton.addEventListener( "click", parseEmployeeList );
-		document.body.appendChild( parsebutton );
-	}
-}
-
-/* END ATTENDANCE FILLER */
-
-function isSupervisor(){
-	
-}
-
 function urlContains( tar ){
 	return window.location.href.indexOf( tar ) != -1;
 }
 
 function getPage(){
-	if ( urlContains( "employeeSchedules" ) ){
+	if ( urlContains( "employeeSchedules" ) || urlContains( "Scheduler/sa/index" ) ){
 		return "calendar";
 	}
 	else if ( urlContains( "bulkEnterAttendance" ) ){
@@ -648,40 +517,37 @@ function doRoadsterStuff(){
     $(window).resize( bannerResize );
 }
 
-
-
 /* END ROADSTER STUFF */
 
 /* BEGIN ACTUAL WEBPAGE LOGIC */
-
 var isSupervisor = false;
-chrome.storage.local.get( "isSupervisor", function(data) { if ( data.isSupervisor ) isSupervisor = data.isSupervisor; } );
 
-switch ( getPage() ){
-	case "calendar":
-		setCalendarDateInfo();
-		calculateDailyTotals();
-		calculateWeeklyTotals();
-		addPickUpShiftsLink();
-		addPickUpShiftsDropdown();
-		
-		addButton();
-		addCheckBoxes();
-		break;
-		
-	case "attendance":
-		addAttendanceParser();
-		loadNames();
-		loadEntered();
-		break;
-	
-	case "routes":
-		chrome.storage.local.get( "roadsterEnabled", function( data ) {
-			if ( data.roadsterEnabled == true ) 
-				doRoadsterStuff();
-		});
-		break;
-	
-	default:
-		console.log( "Encountered an unhandled URL." );
-}
+chrome.storage.local.get( "isSupervisor", function(data){ 
+	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
+});
+
+setTimeout( function(){
+	switch ( getPage() ){
+		case "calendar":
+			if ( isSupervisor ){
+				setCalendarDateInfo();
+				calculateDailyTotals();
+				calculateWeeklyTotals();
+				addPickUpShiftsLink();
+				addPickUpShiftsDropdown();
+				addCheckBoxes();
+			}
+			addButton();
+			break;
+			
+		case "routes":
+			chrome.storage.local.get( "roadsterEnabled", function( data ) {
+				if ( data.roadsterEnabled == true ) 
+					doRoadsterStuff();
+			});
+			break;
+			
+		default:
+			console.log( "Encountered an unhandled URL." );
+	}
+}, 1000 );
