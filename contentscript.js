@@ -1,3 +1,35 @@
+function revokeAuthToken( token ){
+	var xml = new XMLHttpRequest();
+	xml.open( "GET", "https://accounts.google.com/o/oauth2/revoke?token=" + token );
+	xml.send();
+}
+
+function eventToGoogleEvent( e ){
+	e.year;
+	e.month;
+	e.date;
+	e.startTime;
+	e.endTime;
+	e.description;
+	
+	var d = new Date( e.year.toString + '-' + e.month.toString() +
+		'-' + e.date.toString() + ' ' + startTime );
+	
+	var googleEvent = {
+		'summary': e.description,
+		'location': '220 Pawtucket St. Lowell, MA 01854',
+		'description': '',
+		'start': {
+			'dateTime': '2016-09-16T20:00:00-04:00',
+			'timeZone': 'America/New_York'
+		},
+		'end': {
+			'dateTime': '2016-09-16T22:00:00-04:00',
+			'timeZone': 'America/New_York'
+		}
+	};
+}
+
 /* BEGIN FORWARD DECLARATIONS */
 
 var monthYearString;
@@ -232,7 +264,7 @@ function markAllBoxes(){
 	}
 }
 
-function collectEvents(){
+function collectEvents( EventArray ){
 	var eventDays = document.getElementsByClassName( "eventDay" );
 	var weeks = getCheckedBoxes();
 	
@@ -252,7 +284,7 @@ function collectEvents(){
 				var desc = rawData.substring( 17, rawData.length ).trim();
 				desc = desc.replace( "&amp;", "&" );
 				
-				Events.push( new Event( day.eventYear, day.eventMonth, day.eventDate, tStart, tEnd, desc ) );
+				EventArray.push( new Event( day.eventYear, day.eventMonth, day.eventDate, tStart, tEnd, desc ) );
 			}
 		}
 	}
@@ -270,31 +302,7 @@ Date.prototype.addDays = function(days){
 	return nd;
 }
 
-function generateCSVUnderling(){
-	var Events = [];
-	
-	var days = document.getElementsByClassName( "divContend" );
-
-	for ( day of days ){
-		var sched = day.getElementsByTagName( "span" )[0];
-		var id = sched.id;
-		var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
-		
-		var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
-		if ( box ){	
-			var time = box.childNodes[0].textContent;
-			var start = time.substring( 0, time.indexOf( '-' ) );
-			var end = time.substring( time.indexOf( '-' ) + 1, time.length );
-			var position = box.childNodes[2].textContent.trim();
-			
-			var dy = d.getFullYear();
-			var dm = d.getMonth() + 1;
-			var dd = d.getDate();
-			
-			Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
-		}
-	}
-
+function buildCSVString( Events ){
 	var outString = "Subject,Start Date,Start Time,End Date,End Time\n";		
 	for ( var i = 0; i < Events.length; i++ ){
 		var cur = Events[i];
@@ -319,7 +327,12 @@ function generateCSVUnderling(){
 		outString = outString.concat( subject.concat( 
 			startDate.concat( startTime.concat( endDate.concat( endTime ) ) ) ) );
 	}
+	return outString;
+}
 
+function generateAndClickBlob( Events ){
+	var outString = buildCSVString( Events );
+	
 	var blob = new Blob( [outString], { type: "text/html" } );
 	var url = window.URL.createObjectURL( blob );
 	var a = document.createElement( "a" );
@@ -332,62 +345,62 @@ function generateCSVUnderling(){
 	blob = null;
 }
 
+function generateCSVUnderling(){
+	var weeks = getCheckedBoxes();
+	
+	Events = [];
+	
+	var days = document.getElementsByClassName( "divContend" );
+
+	for ( day of days ){
+		var sched = day.getElementsByTagName( "span" )[0];
+		var id = sched.id;
+		var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
+		
+		var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
+		if ( box ){	
+			var time = box.childNodes[0].textContent;
+			var start = time.substring( 0, time.indexOf( '-' ) );
+			var end = time.substring( time.indexOf( '-' ) + 1, time.length );
+			var position = box.childNodes[2].textContent.trim();
+			
+			var dy = d.getFullYear();
+			var dm = d.getMonth() + 1;
+			var dd = d.getDate();
+			
+			Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+		}
+	}
+	
+	generateAndClickBlob( Events );
+}
+
 function generateCSV(){
 	labelWeekRows();
 	markAllBoxes();
-	collectEvents();
+	
+	Events = [];
+	collectEvents( Events );
 	
 	if ( Events.length == 0 ){
 		console.error( "No events to generate a CSV for!" );
 	}
 	else{
-		var outString = "Subject,Start Date,Start Time,End Date,End Time\n";
-		
-		for ( var i = 0; i < Events.length; i++ ){
-			var cur = Events[i];
-			var subject = cur.description + ",";
-			var startDate = cur.month.toString() + "/" + cur.date.toString() +
-							"/" + cur.year.toString() + ",";
-			var startTime = cur.startTime.toString() + ",";
-			
-			var endDate;
-			
-			if ( cur.startTime.indexOf( "PM" ) != -1 && cur.endTime.indexOf( "AM" ) != -1 ){
-				var tempDate = new Date( startDate );
-				tempDate.setDate( tempDate.getDate() + 1 );
-				endDate = (tempDate.getMonth() + 1).toString() + "/" + 
-						tempDate.getDate().toString() + "/" + cur.year.toString() + ",";
-			}
-			else
-				endDate = startDate;
-			
-			var endTime = cur.endTime.toString() + "\n";
-	
-			outString = outString.concat( subject.concat( 
-				startDate.concat( startTime.concat( endDate.concat( endTime ) ) ) ) );
-		}
-		
-		var blob = new Blob( [outString], { type: "text/html" } );
-		var url = window.URL.createObjectURL( blob );
-		var a = document.createElement( "a" );
-		a.download = "schedule.csv";
-		a.href = url;
-		a.click();
-		window.URL.revokeObjectURL( url );
-		a = null;
-		url = null;
-		blob = null;
+		generateAndClickBlob( Events );
 	}
 }
 
-function handleButtonClick(){	
+function handleButtonClick(){
+	chrome.runtime.sendMessage( { action: 'generateCSV' }, function( resp ){
+		console.log( resp );
+	});
 	isSupervisor ? generateCSV() : generateCSVUnderling();
 }
 
 function addButton(){
 	var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
 	var exportButton = document.createElement( "a" );
-	exportButton.innerHTML = "Export CSV";
+	exportButton.innerHTML = "Export Selected Weeks as CSV";
 	exportButton.style.cursor = "pointer";
 	exportButton.addEventListener( "click", handleButtonClick );
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );

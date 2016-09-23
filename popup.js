@@ -1,3 +1,7 @@
+/*document.getElementById( "authorize_page" ).addEventListener( "click", function(){
+	window.open( "authorize.html", "" );
+});*/
+
 function refresh(){
 	chrome.tabs.getSelected( null, function(tab){
 		chrome.tabs.executeScript( tab.id, { code: "window.location.reload();" } );
@@ -23,7 +27,7 @@ roadster.addEventListener( "click", function() {
 });
 
 chrome.storage.local.get( ["isSupervisor", "roadsterEnabled"], function( data ) {
-	console.log( data );
+	//console.log( data );
 	if ( data.isSupervisor != undefined ){
 		supervisor.checked = data.isSupervisor;
 	}
@@ -36,3 +40,12 @@ chrome.storage.local.get( ["isSupervisor", "roadsterEnabled"], function( data ) 
 	else
 		roadster.checked = false;
 });
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.greeting == "hello")
+      sendResponse({farewell: "goodbye"});
+  });
