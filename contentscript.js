@@ -372,29 +372,53 @@ function generateCSVUnderling(){
 		}
 	}
 	
-	generateAndClickBlob( Events );
+	//generateAndClickBlob( Events );
 }
 
 function generateCSV(){
 	labelWeekRows();
 	markAllBoxes();
 	
-	Events = [];
 	collectEvents( Events );
+	
+	console.log( Events );
 	
 	if ( Events.length == 0 ){
 		console.error( "No events to generate a CSV for!" );
 	}
 	else{
-		generateAndClickBlob( Events );
+		//generateAndClickBlob( Events );
 	}
 }
 
 function handleButtonClick(){
-	chrome.runtime.sendMessage( { action: 'generateCSV' }, function( resp ){
-		console.log( resp );
-	});
 	isSupervisor ? generateCSV() : generateCSVUnderling();
+	
+	var test = Events[0];
+	
+	var url = 'https://www.googleapis.com/calendar/v3/calendars/{calendarID}/events/';
+	
+	var start = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.startTime );
+	var end = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.endTime );
+	
+	chrome.storage.local.get( "transpoCalendarID", function( item ){
+		if ( item.transpoCalendarID ){
+			chrome.identity.getAuthToken( { 'interactive': true }, function(token){
+				$.ajax({
+					url: url.replace( "{calendarID", item.transpoCalendarID ),
+					type: 'POST',
+					data: '{ "start": { "dateTime": ' + start.toISOString() + ', "timeZone": "America/New_York" }, "end": { "dateTime": ' + end.toISOString() + ', "timeZone": "America/New_York" }, "summary": ' + test.description + ' }',
+					contentType: 'application/json; charset=utf-8',
+					dataType: 'json',
+					headers: { 'Authorization': 'Bearer ' + token },
+					success: function( response ) { console.log( response ); },
+					error: function( response ) { console.log( "error:", response ); }
+				});
+			});
+		}
+		else
+			console.error( "Couldn't get transpoCalendarID" );
+	});
 }
 
 function addButton(){
