@@ -64,10 +64,11 @@ function handleSetCalendarIDButtonClick(){
 	var id = getSelectedCalendarID();
 	if ( id ){
 		chrome.storage.local.set( { transpoCalendarID: id }, function(){
-			$("#changeCalendarIDButton").css( { display:'initial' } );
-			$("#setCalendarIDButton").css( { display:'none' } );
+			$("#changeCalendarIDButton").css( { display: 'inline' } );
+			$("#setCalendarIDButton").css( { display: 'none' } );
 			$("#calendarList").html( "" );
 			$("#calendarID").html( id );
+			$("#deleteCalendar").css( { 'display': 'inline' } );
 			$("#cancelButton").remove();
 			calendars = [];
 		});
@@ -76,16 +77,26 @@ function handleSetCalendarIDButtonClick(){
 		console.error( "Problem getting the selected calendar" );
 }
 
+function deleteCalendarButtonClick(){
+	chrome.storage.local.remove( "transpoCalendarID", function(){
+		$("#calendarID").html( "Calendar has not been set." );
+		$("#deleteCalendar").css( { 'display': 'none' } );
+	});
+}
+
 window.onload = function(){
 	$("#changeCalendarIDButton").click( handleCalendarIDChangeButtonClick );
 	$("#setCalendarIDButton").click( handleSetCalendarIDButtonClick );
+	$("#deleteCalendarButton").click( deleteCalendarButtonClick );
 	
 	chrome.storage.local.get( "transpoCalendarID", function(items){
 		if ( items.transpoCalendarID ){
 			$("#calendarID").html( items.transpoCalendarID );
+			$("#deleteCalendar").css( { 'display': 'inline' } );
 		}
 		else{
 			$("#calendarID").html( "Calendar has not been set." );
+			$("#deleteCalendar").css( { 'display': 'none' } );
 		}
 	});
 }

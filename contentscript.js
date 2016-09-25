@@ -1,3 +1,9 @@
+chrome.runtime.onMessage.addListener(
+	function( request, sender, sendResponse ) {
+		console.log( request );
+	}
+);
+
 function revokeAuthToken( token ){
 	var xml = new XMLHttpRequest();
 	xml.open( "GET", "https://accounts.google.com/o/oauth2/revoke?token=" + token );
@@ -330,101 +336,74 @@ function buildCSVString( Events ){
 	return outString;
 }
 
-function generateAndClickBlob( Events ){
-	var outString = buildCSVString( Events );
-	
-	var blob = new Blob( [outString], { type: "text/html" } );
-	var url = window.URL.createObjectURL( blob );
-	var a = document.createElement( "a" );
-	a.download = "schedule.csv";
-	a.href = url;
-	a.click();
-	window.URL.revokeObjectURL( url );
-	a = null;
-	url = null;
-	blob = null;
-}
-
 function generateCSVUnderling(){
-	var weeks = getCheckedBoxes();
-	
 	Events = [];
+	
+	var weeks = getCheckedBoxes();
 	
 	var days = document.getElementsByClassName( "divContend" );
 
-	for ( day of days ){
-		var sched = day.getElementsByTagName( "span" )[0];
-		var id = sched.id;
-		var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
-		
-		var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
-		if ( box ){	
-			var time = box.childNodes[0].textContent;
-			var start = time.substring( 0, time.indexOf( '-' ) );
-			var end = time.substring( time.indexOf( '-' ) + 1, time.length );
-			var position = box.childNodes[2].textContent.trim();
-			
-			var dy = d.getFullYear();
-			var dm = d.getMonth() + 1;
-			var dd = d.getDate();
-			
-			Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
-		}
-	}
+	var dayNum = 0;
 	
-	//generateAndClickBlob( Events );
+	for ( day of days ){
+		if ( weeks.indexOf( parseInt(dayNum / 7) ) != -1 ){
+			var sched = day.getElementsByTagName( "span" )[0];
+			var id = sched.id;
+			var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
+			
+			var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
+			if ( box ){	
+				var time = box.childNodes[0].textContent;
+				var start = time.substring( 0, time.indexOf( '-' ) );
+				var end = time.substring( time.indexOf( '-' ) + 1, time.length );
+				var position = box.childNodes[2].textContent.trim();
+				
+				var dy = d.getFullYear();
+				var dm = d.getMonth() + 1;
+				var dd = d.getDate();
+				
+				Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+			}
+		}
+		
+		dayNum++;
+	}
 }
 
 function generateCSV(){
+	Events = [];
+	
 	labelWeekRows();
 	markAllBoxes();
 	
 	collectEvents( Events );
 	
-	console.log( Events );
-	
 	if ( Events.length == 0 ){
 		console.error( "No events to generate a CSV for!" );
-	}
-	else{
-		//generateAndClickBlob( Events );
 	}
 }
 
 function handleButtonClick(){
 	isSupervisor ? generateCSV() : generateCSVUnderling();
 	
-	var test = Events[0];
-	
 	var url = 'https://www.googleapis.com/calendar/v3/calendars/{calendarID}/events/';
 	
-	var start = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.startTime );
-	var end = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.endTime );
-	
-	chrome.storage.local.get( "transpoCalendarID", function( item ){
-		if ( item.transpoCalendarID ){
-			chrome.identity.getAuthToken( { 'interactive': true }, function(token){
-				$.ajax({
-					url: url.replace( "{calendarID", item.transpoCalendarID ),
-					type: 'POST',
-					data: '{ "start": { "dateTime": ' + start.toISOString() + ', "timeZone": "America/New_York" }, "end": { "dateTime": ' + end.toISOString() + ', "timeZone": "America/New_York" }, "summary": ' + test.description + ' }',
-					contentType: 'application/json; charset=utf-8',
-					dataType: 'json',
-					headers: { 'Authorization': 'Bearer ' + token },
-					success: function( response ) { console.log( response ); },
-					error: function( response ) { console.log( "error:", response ); }
-				});
-			});
-		}
-		else
-			console.error( "Couldn't get transpoCalendarID" );
-	});
+	for ( test of Events ){					
+		var start = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.startTime );
+		var end = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.endTime );
+		if ( end.getHours() < start.getHours() )
+			end.setDate( end.getDate() + 1 );
+		
+		var data = '{ "start": { "dateTime": \"' + start.toISOString() + '\", "timeZone": "America/New_York" }, "end": { "dateTime": \"' + end.toISOString() + '\", "timeZone": "America/New_York" }, "summary": \"' + test.description + '\", "location": "220 Pawtucket St. Lowell, MA 01854" }';
+		
+		chrome.runtime.sendMessage( { 'data': data, 'type': 'addEvent' }, function(resp){ console.log(resp); } );
+	}
 }
 
 function addButton(){
 	var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
 	var exportButton = document.createElement( "a" );
-	exportButton.innerHTML = "Export Selected Weeks as CSV";
+	exportButton.innerHTML = "Export";
 	exportButton.style.cursor = "pointer";
 	exportButton.addEventListener( "click", handleButtonClick );
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
@@ -570,13 +549,13 @@ chrome.storage.local.get( "isSupervisor", function(data){
 	switch ( getPage() ){
 	case "calendar":
 		addButton();
+		addCheckBoxes();
 		if ( isSupervisor ){
 			setCalendarDateInfo();
 			calculateDailyTotals();
 			calculateWeeklyTotals();
 			addPickUpShiftsLink();
 			addPickUpShiftsDropdown();
-			addCheckBoxes();
 		}
 		break;
 		
