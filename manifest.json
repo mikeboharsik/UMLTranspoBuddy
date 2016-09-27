@@ -36,8 +36,6 @@
 	
 	"options_page" : "options.html",
 	
-	"content_security_policy": "script-src 'self' https://www.googleapis.com; object-src 'self'",
-	
 	"browser_action": {
 		"default_icon": "icon.png",
 		"default_title": "UML Transportation Buddy",
@@ -45,10 +43,11 @@
 	},
 	
 	"permissions": [
-		"tabs",
+		"activeTab",
 		"storage",
 		"identity",
-		"https://googleapis.com/"
+		"https://*.uml.edu/routes/*",
+		"https://*.timeforge.com/Scheduler/*"
 	],
 	
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuNoszGaevOAOp3A2qSA41UdzIAr6sZYuGT8tKBf0+vMesqQz3LP0LxWTs3TbGwV/wwGAZvN5JmyxOiJSlkRZQhVW6qhPP4tuUQR4ULUlFeogd/8RYpZuyNDa8P2nm+xkwFDUF2o3prDDjL2zL/bkw1fJQXqORu3cy6wwmBarn78fGBYQsKb954m/fuUgO3/a1WPK547nHuhqaBrmUy4Br3gvQQHh7fBvhJFBqXx4NEDty7X+WRP+gW3JSz7hHvmFVfOinbWIuFghJJxtZrbJ5pQGfQIH/1hJDIVWKh0aQTnctcIx9fIC5I0tdMmcw07qr7B1M35KfboLtTstvNl78QIDAQAB"

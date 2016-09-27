@@ -1,6 +1,36 @@
 chrome.runtime.onMessage.addListener(
 	function( request, sender, sendResponse ) {
-		console.log( request );
+		if ( !request.error ){
+			var n = $("#num");
+			var d = $("#dem");
+			var x = parseInt(n.html());
+			var y = parseInt(d.html());
+			var o;
+			if ( x + 1 < 10 && y >= 10 )
+				o = "0" + (x+1).toString();
+			else
+				o = (x+1).toString();
+			n.html( o );
+			
+			if ( parseInt(n.html()) == parseInt(d.html()) ){
+				$("#exportButton").html( "<span id='done'>Done!</span>" );
+				$("#exportButton").animate( { opacity: 0 }, 5000 ); 
+			}
+		}
+		else{
+			if ( request.error == "transpoCalendarID not set" ){
+				$("#exportButton").html("You didn't set your calendar!");
+				document.getElementById( "exportButton" ).addEventListener( "click", handleButtonClick );
+				addCheckBoxes();
+				setTimeout( function(){ $("#exportButton").html("Export") }, 5000 );
+			}
+				else{
+				console.info( request.error );
+				$("#exportButton").html( "Error" );
+				document.getElementById( "exportButton" ).addEventListener( "click", handleButtonClick );
+				addCheckBoxes();
+			}
+		}
 	}
 );
 
@@ -10,30 +40,29 @@ function revokeAuthToken( token ){
 	xml.send();
 }
 
-function eventToGoogleEvent( e ){
-	e.year;
-	e.month;
-	e.date;
-	e.startTime;
-	e.endTime;
-	e.description;
-	
-	var d = new Date( e.year.toString + '-' + e.month.toString() +
-		'-' + e.date.toString() + ' ' + startTime );
+function eventToGoogleEvent( e ){	
+	var start = new Date( e.month.toString() + '/' + e.date.toString() +
+		'/' + e.year.toString() + ' ' + e.startTime );
+	var end = new Date( e.month.toString() + '/' + e.date.toString() +
+		'/' + e.year.toString() + ' ' + e.endTime );
+	if ( end.getHours() < start.getHours() )
+			end.setDate( end.getDate() + 1 );
 	
 	var googleEvent = {
 		'summary': e.description,
 		'location': '220 Pawtucket St. Lowell, MA 01854',
-		'description': '',
+		//'description': '',
 		'start': {
-			'dateTime': '2016-09-16T20:00:00-04:00',
+			'dateTime': start.toISOString(),
 			'timeZone': 'America/New_York'
 		},
 		'end': {
-			'dateTime': '2016-09-16T22:00:00-04:00',
+			'dateTime': end.toISOString(),
 			'timeZone': 'America/New_York'
 		}
 	};
+	
+	return googleEvent;
 }
 
 /* BEGIN FORWARD DECLARATIONS */
@@ -296,113 +325,75 @@ function collectEvents( EventArray ){
 	}
 }
 
-function addDays( d, n ){
-	var nd = new Date( d.getTime() );
-	nd.setDate( d.getDate() + n );
-	return nd;
-}
-
-Date.prototype.addDays = function(days){
-	var nd = new Date( this.valueOf() );
-	nd.setDate( nd.getDate() + days );
-	return nd;
-}
-
-function buildCSVString( Events ){
-	var outString = "Subject,Start Date,Start Time,End Date,End Time\n";		
-	for ( var i = 0; i < Events.length; i++ ){
-		var cur = Events[i];
-		var subject = cur.description + ",";
-		var startDate = cur.month.toString() + "/" + cur.date.toString() +
-						"/" + cur.year.toString() + ",";
-		var startTime = cur.startTime.toString() + ",";
-		
-		var endDate;
-		
-		if ( cur.startTime.indexOf( "PM" ) != -1 && cur.endTime.indexOf( "AM" ) != -1 ){
-			var tempDate = new Date( startDate );
-			tempDate = tempDate.addDays( 1 );
-			endDate = (tempDate.getMonth() + 1).toString() + "/" + 
-					tempDate.getDate().toString() + "/" + cur.year.toString() + ",";
-		}
-		else
-			endDate = startDate;
-		
-		var endTime = cur.endTime.toString() + "\n";
-
-		outString = outString.concat( subject.concat( 
-			startDate.concat( startTime.concat( endDate.concat( endTime ) ) ) ) );
-	}
-	return outString;
-}
-
-function generateCSVUnderling(){
+function populateEventsArray(){
 	Events = [];
 	
-	var weeks = getCheckedBoxes();
+	if ( isSupervisor ){
+		labelWeekRows();
+		markAllBoxes();
+		
+		collectEvents( Events );
+		
+		if ( Events.length == 0 ){
+			console.error( "No events to generate a CSV for!" );
+		}
+	}
+	else{
+		var weeks = getCheckedBoxes();
 	
-	var days = document.getElementsByClassName( "divContend" );
+		var days = document.getElementsByClassName( "divContend" );
 
-	var dayNum = 0;
-	
-	for ( day of days ){
-		if ( weeks.indexOf( parseInt(dayNum / 7) ) != -1 ){
-			var sched = day.getElementsByTagName( "span" )[0];
-			var id = sched.id;
-			var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
-			
-			var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
-			if ( box ){	
-				var time = box.childNodes[0].textContent;
-				var start = time.substring( 0, time.indexOf( '-' ) );
-				var end = time.substring( time.indexOf( '-' ) + 1, time.length );
-				var position = box.childNodes[2].textContent.trim();
+		var dayNum = 0;
+		
+		for ( day of days ){
+			if ( weeks.indexOf( parseInt(dayNum / 7) ) != -1 ){
+				var sched = day.getElementsByTagName( "span" )[0];
+				var id = sched.id;
+				var d = new Date( id.substring( id.indexOf( '_' ) + 1, id.length ) );
 				
-				var dy = d.getFullYear();
-				var dm = d.getMonth() + 1;
-				var dd = d.getDate();
-				
-				Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+				var box = sched.getElementsByClassName( "spanItemCalendar" )[0];
+				if ( box ){	
+					var time = box.childNodes[0].textContent;
+					var start = time.substring( 0, time.indexOf( '-' ) );
+					var end = time.substring( time.indexOf( '-' ) + 1, time.length );
+					var position = box.childNodes[2].textContent.trim();
+					
+					var dy = d.getFullYear();
+					var dm = d.getMonth() + 1;
+					var dd = d.getDate();
+					
+					Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+				}
 			}
+			
+			dayNum++;
 		}
-		
-		dayNum++;
-	}
-}
-
-function generateCSV(){
-	Events = [];
-	
-	labelWeekRows();
-	markAllBoxes();
-	
-	collectEvents( Events );
-	
-	if ( Events.length == 0 ){
-		console.error( "No events to generate a CSV for!" );
 	}
 }
 
 function handleButtonClick(){
-	isSupervisor ? generateCSV() : generateCSVUnderling();
+	document.getElementById( "exportButton" ).removeEventListener( "click", handleButtonClick );
+	
+	populateEventsArray();
+	
+	$("#checkBoxes").remove();
 	
 	var url = 'https://www.googleapis.com/calendar/v3/calendars/{calendarID}/events/';
 	
-	for ( test of Events ){					
-		var start = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.startTime );
-		var end = new Date( test.month + '/' + test.date + '/' + test.year + ' ' + test.endTime );
-		if ( end.getHours() < start.getHours() )
-			end.setDate( end.getDate() + 1 );
+	Events.length < 10 ? $("#exportButton").html( "<span id='num'>0</span>/<span id='dem'>0</span>" ) : $("#exportButton").html( "<span id='num'>00</span>/<span id='dem'>00</span>" );
+	$("#dem").html( Events.length.toString() );
+	
+	for ( test of Events ){		
+		var data = JSON.stringify( eventToGoogleEvent( test ) );
 		
-		var data = '{ "start": { "dateTime": \"' + start.toISOString() + '\", "timeZone": "America/New_York" }, "end": { "dateTime": \"' + end.toISOString() + '\", "timeZone": "America/New_York" }, "summary": \"' + test.description + '\", "location": "220 Pawtucket St. Lowell, MA 01854" }';
-		
-		chrome.runtime.sendMessage( { 'data': data, 'type': 'addEvent' }, function(resp){ console.log(resp); } );
+		chrome.runtime.sendMessage( { 'data': data, 'type': 'addEvent' }, function(resp){} );
 	}
 }
 
 function addButton(){
 	var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
 	var exportButton = document.createElement( "a" );
+	exportButton.id = "exportButton";
 	exportButton.innerHTML = "Export";
 	exportButton.style.cursor = "pointer";
 	exportButton.addEventListener( "click", handleButtonClick );
@@ -410,28 +401,31 @@ function addButton(){
 }
 
 function addCheckBoxes(){
-	var a = document.createElement( "a" );
-	a.id = "checkBoxes";
-	var inputs = [];
-	for ( var i = 0; i < 5; i++ ){
-		inputs.push( document.createElement( "input" ) );
+	if ( !document.getElementById( "checkBoxes" ) ){
+		var a = document.createElement( "a" );
+		a.id = "checkBoxes";
+		var inputs = [];
+		for ( var i = 0; i < 5; i++ ){
+			inputs.push( document.createElement( "input" ) );
+		}
+		for ( var i = 0; i < inputs.length; i++ ){
+			inputs[i].type = "checkbox";
+			inputs[i].id = "checkBox" + i.toString();
+			inputs[i].checked = true;
+			a.appendChild( inputs[i] );
+			
+			var span = document.createElement( "span" );
+			span.innerHTML = (i+1).toString();
+			span.style = "font-size:11px;vertical-align:25%";
+			a.appendChild( span );
+		}
+		var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
+		rightmenu.insertBefore( a, rightmenu.childNodes[0] );
 	}
-	for ( var i = 0; i < inputs.length; i++ ){
-		inputs[i].type = "checkbox";
-		inputs[i].id = "checkBox" + i.toString();
-		inputs[i].checked = true;
-		a.appendChild( inputs[i] );
-		
-		var span = document.createElement( "span" );
-		span.innerHTML = (i+1).toString();
-		a.appendChild( span );
-	}
-	var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
-	rightmenu.insertBefore( a, rightmenu.childNodes[0] );
 }
 
 function getCheckedBoxes(){
-	var checkBoxes = document.getElementById( "checkBoxes" )
+	var checkBoxes = document.getElementById( "checkBoxes" );
 	var checked = [];
 	if ( checkBoxes ){
 		var inputs = checkBoxes.getElementsByTagName( "input" );
@@ -440,8 +434,10 @@ function getCheckedBoxes(){
 				checked.push( i );
 		}
 	}
-	else
+	else{
+		console.error( "checkBoxes is not defined" );
 		checked = [ 0, 1, 2, 3, 4 ];
+	}
 	return checked;
 }
 
@@ -452,7 +448,7 @@ function urlContains( tar ){
 }
 
 function getPage(){
-	if ( urlContains( "employeeSchedules" ) || ( !isSupervisor && urlContains( "Scheduler/sa/index" ) ) ){
+	if ( isSupervisor && urlContains( "employeeSchedules" ) || ( !isSupervisor && urlContains( "Scheduler/sa/index" ) ) ){
 		return "calendar";
 	}
 	else if ( urlContains( "bulkEnterAttendance" ) ){
@@ -461,13 +457,11 @@ function getPage(){
 	else if ( urlContains( "routes" ) ){
 		return "routes";
 	}
+	else
+		return undefined;
 }
 
 /* BEGIN ROADSTER STUFF */
-
-var expires = new Date();
-expires.setYear( expires.getYear() + 1900 + 1 );
-
 var acc = document.getElementsByClassName( "content" )[0];
 if ( acc )
 	acc.className = "content accordian";
@@ -481,6 +475,9 @@ function hideNumbers(){
 }
 
 function shouldShowNumbers(){
+	var expires = new Date();
+	expires.setYear( expires.getYear() + 1900 + 1 );
+	
     if ( document.cookie.indexOf( "showNumbers" ) == -1 ){
         document.cookie = "showNumbers=false; expires=" + expires;
         return false;
@@ -496,6 +493,9 @@ function shouldShowNumbers(){
 }
 
 function cookieToggle(){
+	var expires = new Date();
+	expires.setYear( expires.getYear() + 1900 + 1 );
+	
     var toggle = $("#permNumbersToggle");
     if ( shouldShowNumbers() ){
         toggle.prop( "innerHTML", "NUMBERS OFF" );
