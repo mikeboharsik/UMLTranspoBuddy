@@ -34,30 +34,17 @@ chrome.runtime.onMessage.addListener(
 	}
 );
 
-function revokeAuthToken( token ){
-	var xml = new XMLHttpRequest();
-	xml.open( "GET", "https://accounts.google.com/o/oauth2/revoke?token=" + token );
-	xml.send();
-}
-
-function eventToGoogleEvent( e ){	
-	var start = new Date( e.month.toString() + '/' + e.date.toString() +
-		'/' + e.year.toString() + ' ' + e.startTime );
-	var end = new Date( e.month.toString() + '/' + e.date.toString() +
-		'/' + e.year.toString() + ' ' + e.endTime );
-	if ( end.getHours() < start.getHours() )
-			end.setDate( end.getDate() + 1 );
-	
+function eventToGoogleEvent( e ){		
 	var googleEvent = {
 		'summary': e.description,
 		'location': '220 Pawtucket St. Lowell, MA 01854',
 		//'description': '',
 		'start': {
-			'dateTime': start.toISOString(),
+			'dateTime': e.dateTimeStart.toISOString(),
 			'timeZone': 'America/New_York'
 		},
 		'end': {
-			'dateTime': end.toISOString(),
+			'dateTime': e.dateTimeEnd.toISOString(),
 			'timeZone': 'America/New_York'
 		}
 	};
@@ -196,12 +183,21 @@ function addPickUpShiftsLinkMainPage(){
 /* BEGIN SCHEDULE EXPORT */
 
 function Event( year, month, date, tStart, tEnd, desc ){
-	this.year = year;
-	this.month = month;
-	this.date = date;
 	this.startTime = tStart;
 	this.endTime = tEnd;
 	this.description = desc;
+	
+	this.dateTimeStart;
+	this.dateTimeEnd;
+
+	this.dateTimeStart = new Date( month.toString() + '/' + date.toString() +
+								'/' + year.toString() + ' ' + tStart );
+								
+	this.dateTimeEnd = new Date( month.toString() + '/' + date.toString() +
+	'/' + year.toString() + ' ' + tEnd );
+	
+	if ( this.dateTimeEnd.getHours() < this.dateTimeStart.getHours() )
+		this.dateTimeEnd.setDate( this.dateTimeEnd.getDate() + 1 );
 }
 
 function getMonthInt( str ){
@@ -362,7 +358,7 @@ function populateEventsArray(){
 					var dm = d.getMonth() + 1;
 					var dd = d.getDate();
 					
-					Events.push( { year: dy, month: dm, date: dd, startTime: start, endTime: end, description: position } );
+					Events.push( new Event(dy, dm, dd, start, end, position ) );
 				}
 			}
 			
@@ -377,8 +373,6 @@ function handleButtonClick(){
 	populateEventsArray();
 	
 	$("#checkBoxes").remove();
-	
-	var url = 'https://www.googleapis.com/calendar/v3/calendars/{calendarID}/events/';
 	
 	Events.length < 10 ? $("#exportButton").html( "<span id='num'>0</span>/<span id='dem'>0</span>" ) : $("#exportButton").html( "<span id='num'>00</span>/<span id='dem'>00</span>" );
 	$("#dem").html( Events.length.toString() );
