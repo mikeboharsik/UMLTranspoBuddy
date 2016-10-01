@@ -36,6 +36,10 @@ function addEvent( queryData ){
 	});
 }
 
+function openOptionsTab(){
+	window.open( "options.html" );
+}
+
 chrome.runtime.onMessage.addListener(
 	function( request, sender, sendResponse ) {
 		//console.log( request );
@@ -47,6 +51,9 @@ chrome.runtime.onMessage.addListener(
 			}
 			else
 				sendResponse( { type: request.type, error: 'No data property supplied in request' } );
+			break;
+		case 'openOptionsTab':
+			openOptionsTab();
 			break;
 		default:
 			sendResponse( { type: request.type, error: 'Unhandled request type given' } );

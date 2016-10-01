@@ -1,35 +1,33 @@
 <html>
 	<head>
-	<title>UML Transportation Buddy Settings</title>
-	<style>
-	body{
-		font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
-		font-size: 12px;
-		width: 250px;
-	}
-	#status{
-		/* avoid an excessively wide status text */
-		white-space: pre;
-		text-overflow: ellipsis;
-		overflow: hidden;
-		max-width: 400px;
-	}
-	#boxes{
-		display:inline-block;
-		width:auto;
-		margin:8px 0px 0px 64px;
-	}
-	</style>
-	<script src="jquery.js"></script>
+		<title>UML Transportation Buddy Settings</title>
+		<style>
+		body{
+			font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+			font-size: 12px;
+			width: 250px;
+		}
+		#status{
+			/* avoid an excessively wide status text */
+			white-space: pre;
+			text-overflow: ellipsis;
+			overflow: hidden;
+			max-width: 400px;
+		}
+		#boxes{
+			display:inline-block;
+			width:auto;
+			margin:8px 0px 0px 64px;
+		}
+		</style>
+		<script src="jquery.js"></script>
 	</head>
 	<body>
-	<span style="font-size:14px;text-align:center">UML Transportation Buddy Settings</span><br />
+		<span style="font-size:14px;text-align:center">UML Transportation Buddy Settings</span><br>
 		<div id="boxes">
 			<input type="checkbox" id="supervisor">Supervisor</input><br>
-			<input type="checkbox" id="roadster" />Roadster Routes</input><br>
-			<!--<input type="button" id="authorize_page" value="Authorize"></input>-->
+			<input type="checkbox" id="roadster">Roadster Routes</input><br>
 		</div>
 		<script src="popup.js"></script>
 	</body>
 </html>
-

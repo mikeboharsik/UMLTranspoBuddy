@@ -455,6 +455,27 @@ function getPage(){
 		return undefined;
 }
 
+function requestOptionsPage(){
+	chrome.runtime.sendMessage( { type: 'openOptionsTab' }, function(resp){});
+}
+
+function handleWindowFocus(){
+	chrome.storage.local.get( "transpoCalendarID", function( item ){
+		if ( item.transpoCalendarID ){
+			$("#checkBoxes").css( { display: 'inline' } );
+			$("#exportButton").html( "Export" );
+			document.getElementById( "exportButton" ).removeEventListener( "click", requestOptionsPage );
+			document.getElementById( "exportButton" ).addEventListener( "click", handleButtonClick );
+		}
+		else{
+			$("#checkBoxes").css( { display: 'none' } );
+			$("#exportButton").html( "Select calendar!" );
+			document.getElementById( "exportButton" ).removeEventListener( "click", handleButtonClick );
+			document.getElementById( "exportButton" ).addEventListener( "click", requestOptionsPage );
+		}
+	});
+}
+
 /* BEGIN ROADSTER STUFF */
 var acc = document.getElementsByClassName( "content" )[0];
 if ( acc )
@@ -537,7 +558,9 @@ function doRoadsterStuff(){
 /* BEGIN ACTUAL WEBPAGE LOGIC */
 var isSupervisor = false;
 
-chrome.storage.local.get( "isSupervisor", function(data){ 
+$(window).focus( handleWindowFocus );
+
+chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data){ 
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
 	
 	switch ( getPage() ){
@@ -550,6 +573,12 @@ chrome.storage.local.get( "isSupervisor", function(data){
 			calculateWeeklyTotals();
 			addPickUpShiftsLink();
 			addPickUpShiftsDropdown();
+		}
+		if ( !data.transpoCalendarID ){
+			$("#checkBoxes").css( { display: 'none' } );
+			$("#exportButton").html( "Select calendar!" );
+			document.getElementById( "exportButton" ).removeEventListener( "click", handleButtonClick );
+			document.getElementById( "exportButton" ).addEventListener( "click", requestOptionsPage );
 		}
 		break;
 		
