@@ -38,34 +38,6 @@ function getCalendarList(){
 	});
 }
 
-function getCalendarEvents( calendarID ){
-	var eventsURL = 'https://www.googleapis.com/calendar/v3/calendars/' + calendarID + '/events?';
-	
-	var min = new Date();
-	min.setDate( min.getDate() - 30 );
-	var max = new Date();
-	max.setDate( max.getDate() + 30 );
-
-	eventsURL += 'timeMin=' + min.toISOString() + '&';
-	eventsURL += 'timeMax=' + max.toISOString() + '&';
-	eventsURL += 'timeZone=America/New_York';
-	
-	chrome.identity.getAuthToken( { 'interactive': true }, function(token){
-		$.ajax({
-			url: eventsURL,
-			type: 'GET',
-			headers: { 'Authorization': 'Bearer ' + token },
-			success: function( resp ){
-				var startEnds = [];
-				for ( i of resp.items ){
-					startEnds.push( { start: i.start.dateTime, end: i.end.dateTime } );
-				}
-				chrome.storage.local.set( { events: startEnds } );
-			}
-		});
-	});	
-}
-
 function handleCalendarIDChangeButtonClick(){
 	$("#changeCalendarIDButton").css( { display:'none' } );
 	$("#setCalendarIDButton").css( { display:'initial' } );

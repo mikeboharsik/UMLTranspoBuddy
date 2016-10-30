@@ -36,8 +36,44 @@ function addEvent( queryData ){
 	});
 }
 
+function getCalendarEvents(){
+	chrome.storage.local.get( "transpoCalendarID", function( item ){
+		if ( item.transpoCalendarID ){
+			var eventsURL = 'https://www.googleapis.com/calendar/v3/calendars/' + item.transpoCalendarID + '/events?';
+			
+			var min = new Date();
+			min.setDate( min.getDate() - 30 );
+			var max = new Date();
+			max.setDate( max.getDate() + 30 );
+
+			eventsURL += 'timeMin=' + min.toISOString() + '&';
+			eventsURL += 'timeMax=' + max.toISOString() + '&';
+			eventsURL += 'timeZone=America/New_York';
+			
+			chrome.identity.getAuthToken( { 'interactive': true }, function(token){
+				$.ajax({
+					url: eventsURL,
+					type: 'GET',
+					headers: { 'Authorization': 'Bearer ' + token },
+					success: function( resp ){
+						var startEnds = [];
+						for ( i of resp.items ){
+							if ( i.status == "cancelled" )
+								console.info( "Ignoring cancelled event:", i );
+							else
+								startEnds.push( { start: i.start.dateTime, end: i.end.dateTime } );
+						}
+						var cur = new Date();
+						chrome.storage.local.set( { events: { calendar: item.transpoCalendarID, items: startEnds, updated: cur.toISOString() } } );
+					}
+				});
+			});
+		}
+	});
+}
+
 function openOptionsTab(){
-	window.open( "options.html" );
+	chrome.tabs.create( { url: 'options.html' } );
 }
 
 chrome.runtime.onMessage.addListener(
@@ -46,7 +82,7 @@ chrome.runtime.onMessage.addListener(
 		switch ( request.type ){
 		case 'addEvent':
 			if ( request.data ){
-				addEvent( request.data, sendResponse );
+				addEvent( request.data );
 				sendResponse( { type: request.type } );
 			}
 			else
@@ -54,6 +90,9 @@ chrome.runtime.onMessage.addListener(
 			break;
 		case 'openOptionsTab':
 			openOptionsTab();
+			break;
+		case 'getCalendarEvents':
+			getCalendarEvents();
 			break;
 		default:
 			sendResponse( { type: request.type, error: 'Unhandled request type given' } );

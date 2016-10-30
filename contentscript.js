@@ -66,10 +66,6 @@ function setCalendarDateInfo(){
 
 var Events = [];
 
-var Names;
-var Entered;
-var Employees;
-
 /* END FORWARD DECLARATIONS */
 
 /* BEGIN DAY / WEEK CALCULATIONS */
@@ -558,13 +554,12 @@ function doRoadsterStuff(){
 /* BEGIN ACTUAL WEBPAGE LOGIC */
 var isSupervisor = false;
 
-$(window).focus( handleWindowFocus );
-
 chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data){ 
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
-	
+
 	switch ( getPage() ){
 	case "calendar":
+		$(window).focus( handleWindowFocus );
 		addButton();
 		addCheckBoxes();
 		if ( isSupervisor ){
@@ -581,7 +576,7 @@ chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data
 			document.getElementById( "exportButton" ).addEventListener( "click", requestOptionsPage );
 		}
 		break;
-		
+
 	case "routes":
 		chrome.storage.local.get( "roadsterEnabled", function( data ) {
 			if ( data.roadsterEnabled == true ) 
@@ -589,6 +584,10 @@ chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data
 		});
 		break;
 		
+	case "attendance":
+		console.info( "Attendance page" );
+		break;
+
 	default:
 		console.log( "Encountered an unhandled URL." );
 	}
