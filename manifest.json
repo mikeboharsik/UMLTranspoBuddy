@@ -4,7 +4,7 @@
 	"name": "UML Transportation Buddy",
 	"short_name": "UMLTranspoBuddy",
 	"description": "Adds functionality to TimeForge and RoadsterRoutes",
-	"version": "0.5",
+	"version": "0.6",
 	"homepage_url": "https://chrome.google.com/webstore/detail/timeforge-buddy/bfkmbblnbolddmpjilidejgbngefckcc",
   
 	"content_scripts": [ {
@@ -12,7 +12,7 @@
 			"*://*.timeforge.com/Scheduler/*",
 			"*://*.uml.edu/routes/*"
 			],
-		"js": ["jquery.js","contentscript.js"]
+		"js": ["jquery.js","timeforge.js","roadster.js","contentscript.js"]
 		}
 	],
 	
