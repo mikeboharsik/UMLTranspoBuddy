@@ -32,11 +32,15 @@ function getDiffInHours( startStr, endStr ){
 	startMinutes = parseInt( startStr.split( ':' )[1] );
 	if ( startHours < 12 && startStr.match( /PM/ ) )
 		startHours += 12;
+	else if ( startStr.match( /AM/ ) && startHours == 12 )
+			startHours = 0;
 	
 	endHours = parseInt( endStr.split( ':' )[0] );
 	endMinutes = parseInt( endStr.split( ':' )[1] );
 	if ( endHours < 12 && endStr.match( /PM/ ) )
 		endHours += 12;
+	else if ( endStr.match( /AM/ ) && endHours == 12 )
+			endHours = 0;
 	
 	var start = new Date();
 	start.setHours( startHours );
@@ -268,7 +272,6 @@ function getNormalShifts(){
 }
 
 function getSupervisorShifts(){
-	console.log( "func" );
 	var selectedWeeks = getCheckedBoxes();
 	var shifts = [];
 	
@@ -280,23 +283,47 @@ function getSupervisorShifts(){
 		
 		var data;
 		var tmp;
-		if ( tmp = tables[i].getElementsByClassName("divContend")[0].getElementsByTagName("td")[0] )
-			data = tmp.innerHTML.trim().split("<br>"), data[1] = data[1].trim();
-		else
-			continue;
+		var table = tables[i];
+		if ( tmp = table.getElementsByClassName("divContend")[0] )
+		{
+			if ( tmp = tmp.getElementsByTagName("td")[0] )
+				data = tmp.innerHTML.trim().split("<br>"), data[1] = data[1].trim();
+			else
+				continue;
+		}
+		else{
+			table = tables[i-1];
+			if ( tmp = table.getElementsByClassName("divContend")[0] ){
+				if ( tmp = tmp.getElementsByTagName("td")[0] ){
+					data = tmp.innerHTML.trim().split("<br>");
+					if ( data[1] )
+						data[1] = data[1].trim();
+					else
+						continue;
+				}
+				else
+					continue;
+			}
+			else
+				continue;
+		}
 			
-		var rows = tables[i].getElementsByTagName("tr");
+		var rows = table.getElementsByTagName("tr");
 		var date = new Date(rows[0].getElementsByClassName("hint-down")[0].id.match( /..\/..\/..../ )[0]);
 		
 		var tStart = data[0].split('-')[0];
 		var tStartHour = parseInt( tStart.split(':')[0] );
 		var tStartMinutes = tStart.split(':')[1], tStartMinutes = tStartMinutes.split(' '), tStartMinutes = parseInt(tStartMinutes[0]);
 		if ( tStartHour < 12 && tStart.indexOf( "PM" ) != -1 ) tStartHour += 12;
+		else if ( tStart.match( /AM/ ) && tStartHour == 12 )
+			tStartHour = 0;
 		
 		var tEnd = data[0].split('-')[1];
 		var tEndHour = parseInt( tEnd.split(':')[0] );
 		var tEndMinutes = tEnd.split(':')[1], tEndMinutes = tEndMinutes.split(' '), tEndMinutes = parseInt(tEndMinutes[0]);
-		if ( tEndHour < 12 && tEnd.indexOf( "PM" ) != -1 ) tEndHour += 12;
+		if ( tEndHour < 12 && tEnd.match( /PM/ ) ) tEndHour += 12;
+		else if ( tEnd.match( /AM/ ) && tEndHour == 12 )
+			tEndHour = 0;
 		
 		var dStart = new Date( date );
 		dStart.setHours( tStartHour );
