@@ -73,3 +73,65 @@ function doRoadsterStuff(){
 	
     $(window).resize( bannerResize );
 }
+
+var RDSTR_busesLoaded = [];
+var RDSTR_loadCount =  0;
+ 
+function RDSTR_getIds(){
+	RDSTR_busesLoaded = [];
+	
+	var ids = [];
+   
+	for ( var l = $(".section.colored.selector.selected"), i = 0; i < l.length; i++ ){
+		RDSTR_loadCount++;
+		ids.push( l[i].attributes['onclick'].nodeValue.match(/[0-9]/)[0] );
+	}
+	   
+	return ids;
+}
+ 
+function RDSTR_printData(){
+	for ( b of RDSTR_busesLoaded ){
+		console.log( b.Number, b.Timestamp );
+	}
+}
+
+function RDSTR_appendTimestamps(){
+	for ( bus of RDSTR_busesLoaded ){
+		for ( var i = 0, b = $(".label"); i < b.length; i++ ){
+			if ( b[i].innerHTML == bus.Number ){
+				b[i].innerHTML = b[i].innerHTML.concat( " " + bus.Timestamp.match(/T(..:..:..)/)[1] );
+				continue;
+			}
+			else if ( b[i].innerHTML.match( bus.Number ) && b[i].innerHTML != bus.Number ){
+				b[i].innerHTML = b[i].innerHTML.replace( /..:..:../, bus.Timestamp.match(/T(..:..:..)/)[1] );
+				continue;
+			}
+		}
+	}
+}
+
+function RDSTR_getData( id ){
+	$.ajax({
+		url:'https://www.uml.edu/api/Transportation/RoadsterRoutes/BusesOnLine/?apiKey=87C6ACB0-C2A4-460A-AAF2-9493BAA3917B&lineId=' + id,
+		type:'get',
+		context: this,
+		success:function(data){
+			RDSTR_busesLoaded = RDSTR_busesLoaded.concat( data.data );
+			if ( RDSTR_loadCount == 1 ){
+				RDSTR_loadCount--;
+				RDSTR_appendTimestamps();
+			}
+			else
+				RDSTR_loadCount--;
+		}
+	});
+}
+
+function RDSTR_loadAndAppendTimestamps(){
+	for ( var i = 0, ids = RDSTR_getIds(); i < ids.length; i++ ){
+		RDSTR_getData( ids[i] );
+	}
+}
+
+var RDSTR_timer = setInterval( RDSTR_loadAndAppendTimestamps, 5000 );
