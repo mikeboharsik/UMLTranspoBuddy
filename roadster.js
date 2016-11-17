@@ -84,7 +84,7 @@ function RDSTR_getIds(){
    
 	for ( var l = $(".section.colored.selector.selected"), i = 0; i < l.length; i++ ){
 		RDSTR_loadCount++;
-		ids.push( l[i].attributes['onclick'].nodeValue.match(/[0-9]/)[0] );
+		ids.push( l[i].attributes['onclick'].nodeValue.match(/[0-9]+/)[0] );
 	}
 	   
 	return ids;
