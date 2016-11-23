@@ -250,6 +250,8 @@ function getNormalShifts(){
 			if ( dStart > dEnd )
 				dEnd.setDate( dEnd.getDate() + 1 );
 			
+			info[1] = info[1].replace( "&amp;", "&" );
+			
 			shifts.push( { description: info[1], dateTimeStart: dStart, dateTimeEnd: dEnd, week: weekNum  } );
 		}
 	}
@@ -321,6 +323,8 @@ function getSupervisorShifts(){
 		
 		if ( dStart > dEnd )
 			dEnd.setDate( dEnd.getDate() + 1 );
+		
+		data[1] = data[1].replace( "&amp;", "&" );
 		
 		shifts.push( { description: data[1], dateTimeStart: dStart, dateTimeEnd: dEnd, week: weekNum  } );
 	}
