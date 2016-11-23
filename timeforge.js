@@ -161,20 +161,6 @@ function getMonthInt( str ){
 		return -1;
 }
 
-function labelWeekRows(){
-	var tab = document.getElementsByTagName( "table" )[11].getElementsByTagName( "table" )[1].children[0].children;
-	
-	var weeks = [];
-	for ( var i = 2; i <= 6; i++ )
-		weeks.push( tab[i] );
-	
-	for ( var i = 0; i < weeks.length; i++ ){
-		var cur = weeks[i];
-		cur.weekNumber = i;
-		cur.className = "weekRow";
-	}
-}
-
 function markAllBoxes(){
 	var rows = document.getElementsByClassName( "weekRow" );
 	
