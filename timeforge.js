@@ -101,7 +101,7 @@ function calculateWeeklyTotals(){
 		newTd.style.paddingRight = "2px";
 		newTd.style.border = "1px solid rgb(169,169,169)";
 		newTd.style.backgroundColor = "rgb(240,240,240)";
-		newTd.innerHTML = week.toString() + " Hours";
+		newTd.innerHTML = week.toFixed(2).toString() + " Hours";
 		table.children[0].children[2+i].insertBefore( newTd, table.children[0].children[2+i].getElementsByTagName("td")[0] );
 	}
 }
