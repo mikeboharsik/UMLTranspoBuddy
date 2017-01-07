@@ -166,59 +166,6 @@ function getMonthInt( str ){
 		return -1;
 }
 
-// go through calendar cells and mark them with useful info for later
-function markAllBoxes(){
-	var rows = document.getElementsByClassName( "weekRow" );
-	
-	for ( var i = 0; i < rows.length; i++ ){
-		for ( var j = 0; j < 7; j++ ){
-			var cell = rows[i].children[j];
-			var p = rows[i].getElementsByClassName( "hint-down" )[j];
-			var parent;
-			if ( p )
-				parent = p.parentNode;
-			else
-				parent = null;
-			
-			var month = monthInt;
-			var date;
-			
-			if ( parent ){
-				var link = parent.getElementsByClassName( "linkOtherMonth" )[0];
-				if ( link ){
-					date = link.innerHTML;
-					month = getMonthInt( date );
-					date = parseInt( date.substr( date.length - 2, 2 ) );
-				}
-					else{
-					date = parent.childNodes[parent.childNodes.length - 3].textContent.trim();
-					
-					if ( isNaN( parseInt( date ) ) ){
-						month = getMonthInt( date );
-						date = parseInt( date.substr( date.length - 2, 2 ) );
-					}
-				}
-				
-				if ( i == 0 && date > 20 ){
-					month = monthInt - 1;
-					if ( month < 1 )
-						month = 12;
-				}
-				else if ( i == 4 && date < 10 ){
-					month = monthInt + 1;
-					if ( month > 12 )
-						month = 1;
-				}
-				
-				cell.className = "eventDay week" + i.toString();
-				cell.eventYear = parseInt( yearInt );
-				cell.eventMonth = parseInt( month );
-				cell.eventDate = parseInt( date );
-			}
-		}
-	}
-}
-
 function getNormalShifts(){
 	var selectedWeeks = getCheckedBoxes();
 	var shifts = [];
