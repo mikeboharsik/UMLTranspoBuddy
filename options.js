@@ -6,70 +6,81 @@ function getCalendarList(){
 			url: 'https://www.googleapis.com/calendar/v3/users/me/calendarList',
 			type: 'GET',
 			headers: { 'Authorization': 'Bearer ' + token },
-			beforeSend: function(){
+			beforeSend: ()=>{
 				$("#setCalendarIDButton").val( "Getting calendars..." );
 			},
-			success: function( resp ){
-				$("#setCalendarIDButton").val( "Set Selected Calendar" );
-				$("#calendarList").html("");
-				for ( item of resp.items ){
-					calendars.push( { summary:item.summary,id:item.id } );
-					$("#calendarList").append( "<input type='radio' class='calRadio' summary='" + item.summary + "'></input>" + item.summary + "<br>" );
-				}
-				$("#changeCalendar").append( "<div id='cancelButton'><input type='button' value='Cancel'></input></div>" );
-				$(".calRadio").click( function(){
-					for ( r of $(".calRadio" ) ){
-						if ( r == this ) r.checked = true;
-						else r.checked = false;
+			success: ( resp )=>{
+				chrome.storage.local.get( "calendar", function(storage){
+					$("#setCalendarIDButton").val( "Set Selected Calendar" );
+					
+					// clear calendarList div and populate it with radio buttons for each loaded calendar
+					$("#calendarList").html("");
+					
+					for ( item of resp.items ){
+						calendars.push( { summary:item.summary,id:item.id } );
+						if ( storage.calendar && storage.calendar.id == item.id )
+							$("#calendarList").append( "<div class='calendarListItem'><input type='radio' class='calRadio' summary='" + item.summary + "' checked></input>" + item.summary + "</div>" );
+						else
+							$("#calendarList").append( "<div class='calendarListItem'><input type='radio' class='calRadio' summary='" + item.summary + "'></input>" + item.summary + "</div>" );
 					}
-				});
-				$("#cancelButton").click( function(){
-					$("#changeCalendarIDButton").css( { display:'initial' } );
-					$("#setCalendarIDButton").css( { display:'none' } );
-					$("#calendarList").html( "" );
-					calendars = [];
-					this.remove();
+					
+					// make sure we show the calendar list and cancel buttons after loading calendars
+					$("#cancelButton").css( { display: 'block' } );
+					$("#calendarList").css( { display: 'block' } );				
+					
+					// since we're selecting a new calendar, don't show the unset calendar button
+					$("#deleteCalendar").css( { display: 'none' } );
+					
+					// attach event listeners for radio buttons and cancel button
+					$(".calRadio").click( function(){
+						for ( r of $(".calRadio" ) ){
+							if ( r == this ) r.checked = true;
+							else r.checked = false;
+						}
+					});
+					
+					// set current calendar name color so we know it's changing
+					$("#calendarID").animate( { color: '#FFD600' }, 100 );
 				});
 			},
-			error: function( resp ){
-				console.error( resp );
+			error: (resp)=>{
+				$("#setCalendarIDButton").val( "Error getting calendars. You should let the developer know" );
 			}
 		});
 	});
 }
 
-function handleCalendarIDChangeButtonClick(){
-	$("#changeCalendarIDButton").css( { display:'none' } );
-	$("#setCalendarIDButton").css( { display:'initial' } );
+function handleChangeCalendarIDButtonClick(){
+	$("#changeCalendarIDButton").css( { display: 'none' } );
+	$("#setCalendarIDButton").css( { display: 'initial' } );
 	getCalendarList();
 }
 
-function getIDFromSummary( summary ){
-	for ( c of calendars ){
-		if ( c.summary == summary )
-			return c.id;
-	}	
-	return null;
-}
-
-function getSelectedCalendarID(){
+function getSelectedCalendarInfo(){
 	for ( r of $(".calRadio" ) ){
-		if ( r.checked )
-			return getIDFromSummary( r.getAttribute( "summary" ) );
+		if ( r.checked ){
+			for ( c of calendars ){
+				if ( c.summary == r.getAttribute("summary") )
+					return { id: c.id, summary: c.summary };
+			}	
+			return null;
+		}
 	}
 	return null;
 }
 
 function handleSetCalendarIDButtonClick(){
-	var id = getSelectedCalendarID();
-	if ( id ){
-		chrome.storage.local.set( { transpoCalendarID: id }, function(){
+	var calInfo = getSelectedCalendarInfo();
+	if ( calInfo ){
+		chrome.storage.local.set( { calendar: { id: calInfo.id, summary: calInfo.summary } }, function(){
 			$("#changeCalendarIDButton").css( { display: 'inline' } );
 			$("#setCalendarIDButton").css( { display: 'none' } );
 			$("#calendarList").html( "" );
-			$("#calendarID").html( id );
-			$("#deleteCalendar").css( { 'display': 'inline' } );
-			$("#cancelButton").remove();
+			$("#calendarList").css( { display: 'none' } );
+			$("#calendarID").html( calInfo.summary );
+			$("#calendarID").animate( { color: '#424242' }, 100 );
+			$("#deleteCalendar").css( { display: 'inline' } );
+			$("#cancelButton").css( { display: 'none' } );
 			calendars = [];
 		});
 	}
@@ -78,24 +89,43 @@ function handleSetCalendarIDButtonClick(){
 }
 
 function deleteCalendarButtonClick(){
-	chrome.storage.local.remove( "transpoCalendarID", function(){
-		$("#calendarID").html( "Calendar has not been set." );
+	chrome.storage.local.remove( "calendar", function(){
+		$("#calendarID").html( "Calendar is not set" );
 		$("#deleteCalendar").css( { 'display': 'none' } );
 	});
 }
 
+function handleCancelButtonClick(){
+	calendars = [];
+	$("#cancelButton").css( { display:'none' } );
+	$("#calendarList").css( { display:'none' } );
+	$("#calendarList").html( "" );
+	$("#changeCalendarIDButton").css( { display:'initial' } );
+	$("#setCalendarIDButton").css( { display:'none' } );
+	$("#calendarID").animate( { color: '#424242' }, 100 );
+	
+	chrome.storage.local.get( "calendar", storage => {
+		if ( storage.calendar )
+			$("#deleteCalendar").css( { display: 'inline' } );
+		else{
+			console.log( "Unhandled" );
+		}
+	});
+}
+
 window.onload = function(){
-	$("#changeCalendarIDButton").click( handleCalendarIDChangeButtonClick );
+	$("#changeCalendarIDButton").click( handleChangeCalendarIDButtonClick );
 	$("#setCalendarIDButton").click( handleSetCalendarIDButtonClick );
 	$("#deleteCalendarButton").click( deleteCalendarButtonClick );
+	$("#cancelButton").click( handleCancelButtonClick );
 	
-	chrome.storage.local.get( "transpoCalendarID", function(items){
-		if ( items.transpoCalendarID ){
-			$("#calendarID").html( items.transpoCalendarID );
+	chrome.storage.local.get( "calendar", function(items){
+		if ( items.calendar ){
+			$("#calendarID").html( items.calendar.summary );
 			$("#deleteCalendar").css( { 'display': 'inline' } );
 		}
 		else{
-			$("#calendarID").html( "Calendar has not been set." );
+			$("#calendarID").html( "Calendar is not set" );
 			$("#deleteCalendar").css( { 'display': 'none' } );
 		}
 	});

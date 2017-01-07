@@ -12,7 +12,7 @@
 			"*://*.timeforge.com/Scheduler/*",
 			"*://*.uml.edu/routes/*"
 			],
-		"js": ["jquery.js","timeforge.js","roadster.js","contentscript.js"]
+		"js": ["jquery.js","jquery-ui.js","timeforge.js","roadster.js","contentscript.js"]
 		}
 	],
 	

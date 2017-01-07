@@ -3,49 +3,114 @@
 <head>
 	<title>TranspoBuddy Options</title>
 	
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	
 	<style>
+	html{
+		background-color:#2196F3;
+	}
 	body{
-		border-left:1px solid black;
-		border-right:1px solid black;
-		font-family:Consolas;
+		font-family:'Roboto',sans-serif;
+	}
+	#content{
+		background-color:#90CAF9;
+		border-radius:4px;
+		box-shadow:0px 0px 6px #555;
 		margin:auto;
 		max-width:800px;
+		margin-top:16px;
+		padding-bottom:16px;
+		overflow:auto;
 		text-align:center;
 	}
+	@keyframes addShadow{
+		0% { box-shadow:0px 0px 0px black }
+		100% { box-shadow:0px 0px 6px black }
+	}
+	.button {
+		background-color:#BBDEFB;
+		border:none;
+		border-radius:16px;
+		box-shadow:0px 0px 0px white;
+		color:#673AB7;
+		display:inline-block;
+		font-weight:bold;
+		padding:8px 16px;
+		text-align:center;
+		text-decoration:none;
+		font-size:16px;
+	}
+	#cancelButton input{
+		color:#B71C1C;
+		padding:8px 8px;
+	}
+	.button:hover{
+		box-shadow:0px 0px 6px black;
+		animation-name:addShadow;
+		animation-duration:100ms;
+	}
+	h2{
+		color:#311B92;
+		font-size:32px;
+		padding-top:0px;
+	}
+	h3{
+		color:#424242;
+		font-size:16px;
+		padding-bottom:16px;
+	}
 	#calendarIDLabel{
-		text-decoration:underline;
+		
 	}
 	#setCalendarIDButton{
 		display:none;
 	}
 	#calendarList{
+		display:none;
+		font-size:16px;
 		margin:auto;
-		width:fit-content;
+		padding:16px 0px 16px;
 		text-align:left;
+		width:fit-content;
 	}
 	#deleteCalendarButton{
+		color:#B71C1C;
+		font-size:12px;
 		margin-top:16px;
+		padding:4px 8px;
 	}
 	</style>
 	
 	<script src="jquery.js"></script>
 	<script src="options.js"></script>
+	
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+	<script src="jquery-ui.js"></script>
 </head>
 
 <body>
-	<div>
-		<h2 id="calendarIDLabel">Current Calendar Setting</h2>
-	</div>
-	<div>
-		<h3 id="calendarID">&nbsp;</h3>
-	</div>
-	<div id="changeCalendar">
-		<input type="button" id="changeCalendarIDButton" value="Change Calendar Setting"></input>
-		<input type="button" id="setCalendarIDButton" value="Getting Calendars..."></input>
-		<div id="calendarList"></div>
-	</div>
-	<div id="deleteCalendar">
-		<input type="button" id="deleteCalendarButton" value="Delete Current Calendar"></input>
+	<div id="content">
+		<div>
+			<h2 id="calendarIDLabel">
+				<span style="background-color:#BBDEFB;padding:8px;border-radius:4px">
+					Current Calendar Setting
+				</span>
+			</h2>
+		</div>
+		<div>
+			<h3 id="calendarID" style="border-bottom:1px solid #BBDEFB;border-radius:0px 0px 4px 4px">
+				&nbsp;
+			</h3>
+		</div>
+		<div id="changeCalendar">
+			<input type="button" class="button" id="changeCalendarIDButton" value="Change Calendar Setting"></input>
+			<input type="button" class="button" id="setCalendarIDButton" value="Getting Calendars..."></input>
+			<div id="calendarList"></div>
+			<div id="cancelButton" style="display:none"><input type="button" class="button" value="Cancel"></input></div>
+		</div>
+		<div id="deleteCalendar">
+			<input type="button" class="button" id="deleteCalendarButton" value="Unset Current Calendar"></input>
+		</div>
 	</div>
 </body>
 
