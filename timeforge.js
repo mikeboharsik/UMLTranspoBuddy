@@ -4,6 +4,8 @@ var monthInt;
 
 var Events = [];
 
+// get and store month/year information from calendar page in globals
+// yes, this is terrible. it is timeforge's fault for being so poorly written
 function setCalendarDateInfo(){
 	monthYearString = document.getElementsByTagName( "table" )[8].getElementsByTagName( "table" )[2].getElementsByTagName( "table" )[0].getElementsByTagName( "table" )[0].getElementsByTagName( "table" )[0].getElementsByTagName( "td" )[1].getElementsByTagName( "h2" )[0].innerHTML.trim();
 	yearInt = monthYearString.substr( monthYearString.length - 4, 4 );
@@ -27,6 +29,7 @@ function eventToGoogleEvent( e ){
 	return googleEvent;
 }
 
+// given strings expected to be in 'HH:MM TT' format
 function getDiffInHours( startStr, endStr ){
 	startHours = parseInt( startStr.split( ':' )[0] );
 	startMinutes = parseInt( startStr.split( ':' )[1] );
@@ -55,6 +58,7 @@ function getDiffInHours( startStr, endStr ){
 	return ( ( end - start ) / 3600000 );
 }
 
+// go through each calendar cell and calculate hours for each day
 function calculateDailyTotals(){
 	targetChildren = document.getElementsByClassName( "shiftInfo" );
 	targets = [];
@@ -81,6 +85,7 @@ function calculateDailyTotals(){
 	}	
 }
 
+// use previously calculated daily totals to get weekly totals
 function calculateWeeklyTotals(){
 	var totalTd = document.createElement( "td" );
 	totalTd.innerHTML = "Total";
@@ -161,6 +166,7 @@ function getMonthInt( str ){
 		return -1;
 }
 
+// go through calendar cells and mark them with useful info for later
 function markAllBoxes(){
 	var rows = document.getElementsByClassName( "weekRow" );
 	
@@ -341,6 +347,7 @@ function populateEventsArray(){
 		Events = getNormalShifts();
 }
 
+// this is for the export button added to the top right of the screen
 function handleButtonClick(){
 	if ( getCheckedBoxes().length > 0 ){
 		document.getElementById( "exportButton" ).removeEventListener( "click", handleButtonClick );
@@ -363,6 +370,7 @@ function handleButtonClick(){
 	}
 }
 
+// adds export button to top right of the screen
 function addButton(){
 	var rightmenu = document.getElementsByClassName( "rightmenu" )[0];
 	var exportButton = document.createElement( "a" );
@@ -373,6 +381,7 @@ function addButton(){
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
 }
 
+// adds check boxes to top right of screen for week export selection
 function addCheckBoxes(){
 	if ( !document.getElementById( "checkBoxes" ) ){
 		var a = document.createElement( "a" );
@@ -406,6 +415,7 @@ function addCheckBoxes(){
 	}
 }
 
+// returns array of indexes that have been checked
 function getCheckedBoxes(){
 	var checkBoxes = document.getElementById( "checkBoxes" );
 	var checked = [];
