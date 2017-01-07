@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(
 			}
 		}
 		else{
-			if ( request.error == "transpoCalendarID not set" ){
+			if ( request.error == "calendar not set" ){
 				$("#exportButton").html("You didn't set your calendar!");
 				document.getElementById( "exportButton" ).addEventListener( "click", handleButtonClick );
 				addCheckBoxes();
@@ -57,8 +57,8 @@ function requestOptionsPage(){
 }
 
 function handleWindowFocus(){
-	chrome.storage.local.get( "transpoCalendarID", function( item ){
-		if ( item.transpoCalendarID ){
+	chrome.storage.local.get( "calendar", function( item ){
+		if ( item.calendar ){
 			$("#checkBoxes").css( { display: 'inline' } );
 			$("#exportButton").html( "Export" );
 			document.getElementById( "exportButton" ).removeEventListener( "click", requestOptionsPage );
@@ -76,7 +76,7 @@ function handleWindowFocus(){
 /* BEGIN ACTUAL WEBPAGE LOGIC */
 var isSupervisor = false;
 
-chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data){ 
+chrome.storage.local.get( [ "isSupervisor", "calendar" ], function(data){ 
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
 
 	switch ( getPage() ){
@@ -91,7 +91,7 @@ chrome.storage.local.get( [ "isSupervisor", "transpoCalendarID" ], function(data
 			addPickUpShiftsLink();
 			addPickUpShiftsDropdown();
 		}
-		if ( !data.transpoCalendarID ){
+		if ( !data.calendar ){
 			$("#checkBoxes").css( { display: 'none' } );
 			$("#exportButton").html( "Select calendar!" );
 			document.getElementById( "exportButton" ).removeEventListener( "click", handleButtonClick );
