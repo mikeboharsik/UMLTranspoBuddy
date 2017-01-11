@@ -18,10 +18,10 @@ function getCalendarList(){
 					
 					for ( item of resp.items ){
 						calendars.push( { summary:item.summary,id:item.id } );
-						if ( storage.calendar && storage.calendar.id == item.id )
-							$('#calendarList').append( '<div class="calendarListItem"><input type="radio" class="calRadio" summary="' + item.summary + ' checked></input>' + item.summary + '</div>' );
-						else
-							$('#calendarList').append( '<div class="calendarListItem"><input type="radio" class="calRadio" summary="' + item.summary + '"></input>' + item.summary + '</div>' );
+						
+						var listItem = `<div class="calendarListItem"><input type="radio" class="calRadio" summary="${item.summary}" ${storage.calendar && storage.calendar.id == item.id ? 'checked' : ''}></input>${item.summary}</div>`;
+						
+						$('#calendarList').append( listItem );
 					}
 					
 					// make sure we show the calendar list and cancel buttons after loading calendars
@@ -31,7 +31,7 @@ function getCalendarList(){
 					// since we're selecting a new calendar, don't show the unset calendar button
 					$('#deleteCalendar').css( { display: 'none' } );
 					
-					// attach event listeners for radio buttons and cancel button
+					// attach event listeners for radio buttons
 					$('.calRadio').click( function(){
 						for ( r of $('.calRadio' ) ){
 							if ( r == this ) r.checked = true;
