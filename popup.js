@@ -1,47 +1,44 @@
 function refresh(){
 	chrome.tabs.getSelected( null, function(tab){
-		chrome.tabs.executeScript( tab.id, { code: "window.location.reload();" } );
+		chrome.tabs.executeScript( tab.id, { code: 'window.location.reload();' } );
 	});
 }
 
-var supervisor = document.getElementById( "supervisor" );
-supervisor.addEventListener( "click", function() {
+var supervisor = document.getElementById( 'supervisor' );
+supervisor.addEventListener( 'click', function() {
 	if ( this.checked )
-		chrome.storage.local.set( { "isSupervisor": true } );
+		chrome.storage.local.set( { 'isSupervisor': true } );
 	else
-		chrome.storage.local.set( { "isSupervisor": false } );
+		chrome.storage.local.set( { 'isSupervisor': false } );
 	refresh();
 });
 
-var roadster = document.getElementById( "roadster" );
-roadster.addEventListener( "click", function() {
+var roadster = document.getElementById( 'roadster' );
+roadster.addEventListener( 'click', function() {
 	if ( this.checked )
-		chrome.storage.local.set( { "roadsterEnabled": true } );
+		chrome.storage.local.set( { 'roadsterEnabled': true } );
 	else
-		chrome.storage.local.set( { "roadsterEnabled": false } );
+		chrome.storage.local.set( { 'roadsterEnabled': false } );
 	refresh();
 });
 
-chrome.storage.local.get( ["isSupervisor", "roadsterEnabled"], function( data ) {
-	//console.log( data );
-	if ( data.isSupervisor != undefined ){
+chrome.storage.local.get( ['isSupervisor', 'roadsterEnabled'], ( data ) => {
+	if ( data.isSupervisor != undefined )
 		supervisor.checked = data.isSupervisor;
-	}
 	else
 		supervisor.checked = false;
 	
-	if ( data.roadsterEnabled != undefined ){
+	if ( data.roadsterEnabled != undefined )
 		roadster.checked = data.roadsterEnabled;
-	}
 	else
 		roadster.checked = false;
 });
 
 chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
+	(request, sender, sendResponse) => {
 		console.log(sender.tab ?
-			"from a content script:" + sender.tab.url :
-			"from the extension");
-		if (request.greeting == "hello")
-			sendResponse({farewell: "goodbye"});
+			'from a content script:' + sender.tab.url :
+			'from the extension');
+		if (request.greeting == 'hello')
+			sendResponse({farewell: 'goodbye'});
 });
