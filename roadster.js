@@ -1,30 +1,30 @@
-var acc = document.getElementsByClassName( "content" )[0];
+var acc = document.getElementsByClassName( 'content' )[0];
 if ( acc )
-	acc.className = "content accordian";
+	acc.className = 'content accordian';
 
 function showNumbers(){
-    $("body").addClass("showLabels");
+    $('body').addClass('showLabels');
 }
 
 function hideNumbers(){
-    $("body").removeClass("showLabels");
+    $('body').removeClass('showLabels');
 }
 
 function shouldShowNumbers(){
 	var expires = new Date();
 	expires.setYear( expires.getYear() + 1900 + 1 );
 	
-    if ( document.cookie.indexOf( "showNumbers" ) == -1 ){
-        document.cookie = "showNumbers=false; expires=" + expires;
+    if ( document.cookie.indexOf( 'showNumbers' ) == -1 ){
+        document.cookie = 'showNumbers=false; expires=' + expires;
         return false;
     }
     else{
-        if ( document.cookie.indexOf( "showNumbers=true" ) != -1 )
+        if ( document.cookie.indexOf( 'showNumbers=true' ) != -1 )
             return true;
-        else if ( document.cookie.indexOf( "showNumbers=false" ) != -1 )
+        else if ( document.cookie.indexOf( 'showNumbers=false' ) != -1 )
             return false;
         else
-            console.error( "BIG PROBLEM IN shouldShowNumbers" );
+            console.error( 'BIG PROBLEM IN shouldShowNumbers' );
     }
 }
 
@@ -32,44 +32,48 @@ function cookieToggle(){
 	var expires = new Date();
 	expires.setYear( expires.getYear() + 1900 + 1 );
 	
-    var toggle = $("#permNumbersToggle");
+    var toggle = $('#permNumbersToggle');
     if ( shouldShowNumbers() ){
-        toggle.prop( "innerHTML", "NUMBERS OFF" );
-        toggle.css( { "color": "crimson" } );
+        toggle.prop( 'innerHTML', 'NUMBERS OFF' );
+        toggle.css( { 'color': 'crimson' } );
         
-        document.cookie = "showNumbers=false; expires=" + expires;
+        document.cookie = 'showNumbers=false; expires=' + expires;
         hideNumbers();
     }
     else{
-        toggle.prop( "innerHTML", "NUMBERS ON" );
-        toggle.css( { "color": "chartreuse" } );
-        document.cookie = "showNumbers=true; expires=" + expires;
+        toggle.prop( 'innerHTML', 'NUMBERS ON' );
+        toggle.css( { 'color': 'chartreuse' } );
+        document.cookie = 'showNumbers=true; expires=' + expires;
         showNumbers();
     }
 }
 
 function bannerResize(){
-    var toggle = $("#permNumbersToggle");    
+    var toggle = $('#permNumbersToggle');    
     
-    toggle.css( { "margin-left": window.innerWidth / 2 } );
+    toggle.css( { 'margin-left': window.innerWidth / 2 } );
 }
 
 function doRoadsterStuff(){
-	$("body").append( "<div id='permNumbersToggle'></div>" );
-    var toggle = $("#permNumbersToggle");    
+	$("body").append( '<div id="permNumbersToggle"></div>' );
+    var toggle = $('#permNumbersToggle');    
     if ( shouldShowNumbers() ){
-        toggle.prop( "innerHTML", "NUMBERS ON" );
-        toggle.css( { "color": "chartreuse" } );
+        toggle.prop( 'innerHTML', 'NUMBERS ON' );
+        toggle.css( { 'color': 'chartreuse' } );
     }
     else{
-        toggle.prop( "innerHTML", "NUMBERS OFF" );
-        toggle.css( { "color": "crimson" } );
+        toggle.prop( 'innerHTML', 'NUMBERS OFF' );
+        toggle.css( { 'color': 'crimson' } );
     }    
-    toggle.css( { "position": "absolute", "width": "auto", "margin-left": window.innerWidth / 2, "margin-top": "10px", "font-size": "16px", "font-weight": "bold", "z-index": 1, "cursor": "pointer" } );
+    toggle.css( { 'position': 'absolute', 'width': 'auto',
+				'margin-left': window.innerWidth / 2, 'margin-top': '10px',
+				'font-size': '16px', 'font-weight': 'bold', 'z-index': 1, 
+				'cursor': 'pointer' } );
     toggle.click( cookieToggle );
     
-    if ( shouldShowNumbers() )
+    if ( shouldShowNumbers() ){
         showNumbers();
+	}
 	
     $(window).resize( bannerResize );
 }
@@ -82,7 +86,7 @@ function RDSTR_getIds(){
 	
 	var ids = [];
    
-	for ( var l = $(".section.colored.selector.selected"), i = 0; i < l.length; i++ ){
+	for ( var l = $('.section.colored.selector.selected'), i = 0; i < l.length; i++ ){
 		RDSTR_loadCount++;
 		ids.push( l[i].attributes['onclick'].nodeValue.match(/[0-9]+/)[0] );
 	}
@@ -98,15 +102,11 @@ function RDSTR_printData(){
 
 function RDSTR_appendTimestamps(){
 	for ( bus of RDSTR_busesLoaded ){
-		for ( var i = 0, b = $(".label"); i < b.length; i++ ){
-			if ( b[i].innerHTML == bus.Number ){
-				b[i].innerHTML = b[i].innerHTML.concat( " " + bus.Timestamp.match(/T(..:..:..)/)[1] );
-				continue;
-			}
-			else if ( b[i].innerHTML.match( bus.Number ) && b[i].innerHTML != bus.Number ){
+		for ( var i = 0, b = $('.label'); i < b.length; i++ ){
+			if ( b[i].innerHTML == bus.Number )
+				b[i].innerHTML = b[i].innerHTML.concat( ' ' + bus.Timestamp.match(/T(..:..:..)/)[1] );			
+			else if ( b[i].innerHTML.match( bus.Number ) && b[i].innerHTML != bus.Number )
 				b[i].innerHTML = b[i].innerHTML.replace( /..:..:../, bus.Timestamp.match(/T(..:..:..)/)[1] );
-				continue;
-			}
 		}
 	}
 }
@@ -129,9 +129,8 @@ function RDSTR_getData( id ){
 }
 
 function RDSTR_loadAndAppendTimestamps(){
-	for ( var i = 0, ids = RDSTR_getIds(); i < ids.length; i++ ){
+	for ( var i = 0, ids = RDSTR_getIds(); i < ids.length; i++ )
 		RDSTR_getData( ids[i] );
-	}
 }
 
 var RDSTR_timer = setInterval( RDSTR_loadAndAppendTimestamps, 5000 );
