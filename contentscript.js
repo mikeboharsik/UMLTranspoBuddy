@@ -18,16 +18,19 @@ chrome.runtime.onMessage.addListener(
 			}
 		}
 		else{
+			var exportButton = document.getElementById( 'exportButton' );
 			if ( request.error == 'calendar not set' ){
 				$('#exportButton').html( 'You did not set your calendar!' );
-				document.getElementById( 'exportButton' ).addEventListener( 'click', handleButtonClick );
+				exportButton.addEventListener( 'click', handleButtonClick );
 				addCheckBoxes();
-				setTimeout( () => { $('#exportButton').html('Export') }, 5000 );
+				setTimeout( () => {
+					$('#exportButton').html('Export')
+				}, 5000 );
 			}
 				else{
 				console.info( request.error );
 				$('#exportButton').html( 'Error' );
-				document.getElementById( 'exportButton' ).addEventListener( 'click', handleButtonClick );
+				exportButton.addEventListener( 'click', handleButtonClick );
 				addCheckBoxes();
 			}
 		}
@@ -59,17 +62,18 @@ function requestOptionsPage(){
 
 function handleWindowFocus(){
 	chrome.storage.local.get( 'calendar', ( item ) => {
+		var exportButton = document.getElementById( 'exportButton' );
 		if ( item.calendar ){
 			$('#checkBoxes').css( { display: 'inline' } );
 			$('#exportButton').html( 'Export' );
-			document.getElementById( 'exportButton' ).removeEventListener( 'click', requestOptionsPage );
-			document.getElementById( 'exportButton' ).addEventListener( 'click', handleButtonClick );
+			exportButton.removeEventListener( 'click', requestOptionsPage );
+			exportButton.addEventListener( 'click', handleButtonClick );
 		}
 		else{
 			$('#checkBoxes').css( { display: 'none' } );
 			$('#exportButton').html( 'Select calendar!' );
-			document.getElementById( 'exportButton' ).removeEventListener( 'click', handleButtonClick );
-			document.getElementById( 'exportButton' ).addEventListener( 'click', requestOptionsPage );
+			exportButton.removeEventListener( 'click', handleButtonClick );
+			exportButton.addEventListener( 'click', requestOptionsPage );
 		}
 	});
 }
@@ -93,10 +97,12 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			addPickUpShiftsDropdown();
 		}
 		if ( !data.calendar ){
+			var exportButton = document.getElementById( 'exportButton' );
+			
 			$('#checkBoxes').css( { display: 'none' } );
 			$('#exportButton').html( 'Select calendar!' );
-			document.getElementById( 'exportButton' ).removeEventListener( 'click', handleButtonClick );
-			document.getElementById( 'exportButton' ).addEventListener( 'click', requestOptionsPage );
+			exportButton.removeEventListener( 'click', handleButtonClick );
+			exportButton.addEventListener( 'click', requestOptionsPage );
 		}
 		break;
 
