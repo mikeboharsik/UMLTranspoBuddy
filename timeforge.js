@@ -6,8 +6,20 @@ var Events = [];
 
 // get and store month/year information from calendar page in globals
 // yes, this is terrible. it is timeforge's fault for being so poorly written
+function getMonthYearString(){
+	var tmp = document.getElementsByTagName('table')[8];
+	tmp = tmp.getElementsByTagName('table')[2];
+	tmp = tmp.getElementsByTagName('table')[0]; 
+	tmp = tmp.getElementsByTagName('table')[0]; 
+	tmp = tmp.getElementsByTagName('table')[0];
+	tmp = tmp.getElementsByTagName('td')[1];
+	tmp = tmp.getElementsByTagName('h2')[0];
+	tmp = tmp.innerHTML.trim();
+	return tmp;
+}
+
 function setCalendarDateInfo(){
-	monthYearString = document.getElementsByTagName( 'table' )[8].getElementsByTagName( 'table' )[2].getElementsByTagName( 'table' )[0].getElementsByTagName( 'table' )[0].getElementsByTagName( 'table' )[0].getElementsByTagName( 'td' )[1].getElementsByTagName( 'h2' )[0].innerHTML.trim();
+	monthYearString = getMonthYearString();
 	yearInt = monthYearString.substr( monthYearString.length - 4, 4 );
 	monthInt = getMonthInt( monthYearString );
 }
