@@ -2,20 +2,25 @@ var monthYearString;
 var yearInt;
 var monthInt;
 
-var Events = [];
+var Events;
+var LoadedEvents;
 
 // get and store month/year information from calendar page in globals
 // yes, this is terrible. it is timeforge's fault for being so poorly written
 function getMonthYearString(){
-	var tmp = document.getElementsByTagName('table')[8];
-	tmp = tmp.getElementsByTagName('table')[2];
-	tmp = tmp.getElementsByTagName('table')[0]; 
-	tmp = tmp.getElementsByTagName('table')[0]; 
-	tmp = tmp.getElementsByTagName('table')[0];
-	tmp = tmp.getElementsByTagName('td')[1];
-	tmp = tmp.getElementsByTagName('h2')[0];
-	tmp = tmp.innerHTML.trim();
-	return tmp;
+	if ( isSupervisor ){
+		var tmp = document.getElementsByTagName('table')[8];
+		tmp = tmp.getElementsByTagName('table')[2];
+		tmp = tmp.getElementsByTagName('table')[0]; 
+		tmp = tmp.getElementsByTagName('table')[0]; 
+		tmp = tmp.getElementsByTagName('table')[0];
+		tmp = tmp.getElementsByTagName('td')[1];
+		tmp = tmp.getElementsByTagName('h2')[0];
+		tmp = tmp.innerHTML.trim();
+		return tmp;
+	}
+	else
+		return document.getElementsByClassName('divWeekEdit')[0].innerHTML;
 }
 
 function setCalendarDateInfo(){
@@ -24,16 +29,43 @@ function setCalendarDateInfo(){
 	monthInt = getMonthInt( monthYearString );
 }
 
-function eventToGoogleEvent( e ){		
+function dataToGoogleEvent( date, time, line ){		
+	var startTime = time.split('-')[0].trim();
+	var startHours = parseInt(startTime.split(':')[0]);
+	if ( startTime.indexOf('PM') != - 1 && startHours != 12 )
+		startHours += 12;
+	else if ( startTime.indexOf('AM') != -1 && startHours == 12 )
+		startHours = 0;
+	var startMinutes = parseInt(startTime.split(':')[1].split(' ')[0]);
+	
+	var endTime = time.split('-')[1].trim();
+	var endHours = parseInt(endTime.split(':')[0]);
+	if ( endTime.indexOf('PM') != - 1 && endHours != 12 )
+		endHours += 12;
+	else if ( endTime.indexOf('AM') != -1 && endHours == 12 )
+		endHours = 0;
+	var endMinutes = parseInt(endTime.split(':')[1].split(' ')[0]);
+	
+	var dateTimeStart = new Date( date );
+	dateTimeStart.setHours( startHours );
+	dateTimeStart.setMinutes( startMinutes );
+	
+	var dateTimeEnd = new Date( date );
+	dateTimeEnd.setHours( endHours );
+	dateTimeEnd.setMinutes( endMinutes );
+	
+	if ( startTime.indexOf('PM') != -1 && endTime.indexOf('AM') != -1 )
+		dateTimeEnd.setDate( dateTimeEnd.getDate() + 1 );
+	
 	var googleEvent = {
-		'summary': e.description,
+		'summary': line.replace('&amp;','&'),
 		'location': '220 Pawtucket St. Lowell, MA 01854',
 		'start': {
-			'dateTime': e.dateTimeStart.toISOString(),
+			'dateTime': dateTimeStart.toISOString(),
 			'timeZone': 'America/New_York'
 		},
 		'end': {
-			'dateTime': e.dateTimeEnd.toISOString(),
+			'dateTime': dateTimeEnd.toISOString(),
 			'timeZone': 'America/New_York'
 		}
 	};
@@ -79,21 +111,36 @@ function calculateDailyTotals(){
 
 	for ( var i = 0; i < targets.length; i++ ){
 		table = targets[i].getElementsByTagName( 'table' )[0];
-		curStr = table.rows[0].cells[0].innerHTML.trim();
-		startStr = curStr.substr( 0, 8 );
-		endStr = curStr.substr( 9, 8 );
-
-		newCol = document.createElement( 'td' );
-		newCol.className = 'dailyTotalTd';
-		newCol.innerHTML = 'Hours scheduled: ';
-		newSpan = document.createElement( 'span' );
-		newSpan.className = 'dailyTotal';
-		newSpan.innerHTML = getDiffInHours( startStr, endStr ).toString();
-		newCol.appendChild( newSpan );
 		
-		newRow = document.createElement( 'tr' ).appendChild( newCol );
+		if ( i > 0 && targets[i-1] == targets[i] ){
+			// really bad programming here, assuming max of 2 shifts in a day
+			var curStr = table.rows[2].cells[0].innerHTML.trim();
+			var startStr = curStr.substr( 0, 8 );
+			var endStr = curStr.substr( 9, 8 );
+			
+			var totalTarget = targets[i].getElementsByClassName('dailyTotal')[0];
+			var existingVal = parseFloat(totalTarget.innerHTML);
+			var diff = getDiffInHours( startStr, endStr );
+			var result = existingVal + diff;
+			totalTarget.innerHTML = result.toFixed(2).toString();
+		}else{
+			var curStr = table.rows[0].cells[0].innerHTML.trim();
+			var startStr = curStr.substr( 0, 8 );
+			var endStr = curStr.substr( 9, 8 );
+			
+			var newCol = document.createElement( 'td' );
+			newCol.className = 'dailyTotalTd';
+			newCol.innerHTML = 'Hours scheduled: ';
+			
+			var newSpan = document.createElement( 'span' );
+			newSpan.className = 'dailyTotal';
+			newSpan.innerHTML = getDiffInHours( startStr, endStr ).toFixed(2).toString();
+			newCol.appendChild( newSpan );
+			
+			var newRow = document.createElement( 'tr' ).appendChild( newCol );
 
-		targets[i].getElementsByTagName( 'table' )[0].appendChild( newRow );
+			targets[i].getElementsByTagName( 'table' )[0].appendChild( newRow );
+		}
 	}	
 }
 
@@ -166,154 +213,101 @@ function getMonthInt( str ){
 }
 
 function getNormalShifts(){
-	var selectedWeeks = getCheckedBoxes();
-	var shifts = [];
+	var shifts = {};
 	
-	var divs = document.getElementsByClassName('divContentTableBordeNormal');
-	for ( var i = 0; i < divs.length; i++ ){
-		var weekNum = parseInt( i / 7 );
-		if ( selectedWeeks.indexOf( weekNum ) == -1 )
-			continue;
-		
-		var scheds = divs[i].getElementsByClassName('divSchedule');
-		for ( d of scheds ){
-			var date = new Date(d.getElementsByClassName('linkFixed')[0].onclick.toString().match(/..\/..\/..../)[0]);
-			var info = d.getElementsByClassName('spanItemCalendar')[0].innerHTML.split( '<br>  ' );
-			info[1] = info[1].replace( '&amp;', '&' );
-
-			var tStart = info[0].split('-')[0];
-			var tStartHour = parseInt( tStart.split(':')[0] );
-			var tStartMinutes = parseInt( tStart.split(':')[1] );
-			if ( tStart.indexOf( 'PM' ) != -1 ) tStartHour += 12;
-			
-			var tEnd = info[0].split('-')[1];
-			var tEndHour = parseInt( tEnd.split(':')[0] );
-			var tEndMinutes = parseInt( tEnd.split(':')[1] );
-			if ( tEnd.indexOf( 'PM' ) != -1 ) tEndHour += 12;
-			
-			var dStart = new Date( date );
-			dStart.setHours( tStartHour );
-			dStart.setMinutes( tStartMinutes );
-			
-			var dEnd = new Date( date );
-			dEnd.setHours( tEndHour );
-			dEnd.setMinutes( tEndMinutes );
-			
-			if ( dStart > dEnd )
-				dEnd.setDate( dEnd.getDate() + 1 );
-			
-			info[1] = info[1].replace( '&amp;', '&' );
-			
-			shifts.push( { description: info[1], dateTimeStart: dStart, dateTimeEnd: dEnd, week: weekNum  } );
-		}
+	var divs = document.getElementsByClassName('divContend');
+	
+	var tmp = document.getElementsByClassName('summBox');
+	var trs = [];
+	for ( var i = 0; i < tmp.length; i++ )
+		trs.push( tmp[i].parentNode );
+	
+	for ( var i = 0; i < trs.length; i++ ){
+		var tds = trs[i].getElementsByTagName('td');
 	}
 	
 	return shifts;
 }
 
-function getSupervisorShifts(){
-	var selectedWeeks = getCheckedBoxes();
-	var shifts = [];
+function getSupervisorShiftData(){
+	var output = [];
 	
-	var tables = document.getElementsByTagName('table')[8].getElementsByTagName('table');
-	for ( var i = 6, d = 0; i < tables.length; i += 4, d++ ){
-		var weekNum = parseInt( d / 7 );
-		if ( selectedWeeks.indexOf( weekNum ) == -1 )
-			continue;
+	var initialBoxes = document.getElementsByClassName('tdDayWeekTitle');
+	for ( var i = 0; i < initialBoxes.length; i++ ){		
+		var prevMonth = false, nextMonth = false;
 		
-		var data;
-		var tmp;
-		var table = tables[i];
-		if ( tmp = table.getElementsByClassName('divContend')[0] )
-		{
-			if ( tmp = tmp.getElementsByTagName('td')[0] )
-				data = tmp.innerHTML.trim().split('<br>'), data[1] = data[1].trim();
-			else
-				continue;
+		var currentBox = initialBoxes[i];
+		
+		try{
+			var date = new Date(currentBox.getElementsByClassName('hint-down')[0].id.match(/..\/..\/..../)[0]);
+		}
+		catch( err ){ continue; }
+		
+		if ( i < 7 && date.getDate() > 7 ) prevMonth = true;
+		else if ( i > 28 && date.getDate() < 7 ) nextMonth = true;
+		
+		var shiftBoxRows = currentBox.parentNode.parentNode.children[1].getElementsByTagName('tr');
+		if ( shiftBoxRows ){
+			for ( var j = 0; j < shiftBoxRows.length; j += 2 ){
+				var shiftInfo = shiftBoxRows[j].childNodes[1].innerHTML.split('<br>');
+				var time = shiftInfo[0].trim();
+				var line = shiftInfo[1].trim();
+				
+				var newEvent = dataToGoogleEvent( date, time, line )
+				var newEventDatetimeStart = new Date( newEvent.start.dateTime );
+				var newEventDatetimeEnd = new Date( newEvent.end.dateTime );
+				
+				var okay = true;
+				
+				for ( var k = 0; k < LoadedEvents.length; k++ ){
+					eStart = new Date(LoadedEvents[k].start);
+					eEnd = new Date(LoadedEvents[k].end);
+					
+					if ( newEventDatetimeStart >= eStart && newEventDatetimeStart <= eEnd )
+						okay = false;
+					else if ( newEventDatetimeEnd >= eStart && newEventDatetimeEnd <= eEnd )
+						okay = false;
+				}
+				
+				if ( okay )
+					output.push( newEvent );
+			}
+		}
+	}
+	
+	return output;
+}
+
+function populateEvents(){
+	chrome.storage.local.get( 'events', data=>{
+		LoadedEvents = data.events.items;
+		if ( isSupervisor )
+			Events = getSupervisorShiftData();
+		else
+			Events = getNormalShifts();
+		
+		if ( Events.length > 0 ){
+			var totalEvents = Events.length;
+			
+			document.getElementById( 'exportButton' ).removeEventListener( 'click', handleButtonClick );
+			
+			totalEvents < 10 ? $('#exportButton').html( '<span id="num">0</span>/<span id="dem">0</span>' ) : $('#exportButton').html( '<span id="num">00</span>/<span id="dem">00</span>' );
+			$('#dem').html( totalEvents );
+			
+			for ( var i = 0; i < Events.length; i++ ){
+				var data = JSON.stringify( Events[i] );
+				chrome.runtime.sendMessage( { 'data': data, 'type': 'addEvent' }, (resp) => {} );
+			}
 		}
 		else{
-			table = tables[i-1];
-			if ( tmp = table.getElementsByClassName('divContend')[0] ){
-				if ( tmp = tmp.getElementsByTagName('td')[0] ){
-					data = tmp.innerHTML.trim().split('<br>');
-					if ( data[1] )
-						data[1] = data[1].trim();
-					else
-						continue;
-				}
-				else
-					continue;
-			}
-			else
-				continue;
+			console.info( 'No events to upload!' );
 		}
-			
-		var rows = table.getElementsByTagName('tr');
-		var date = new Date(rows[0].getElementsByClassName('hint-down')[0].id.match( /..\/..\/..../ )[0]);
-		
-		var tStart = data[0].split('-')[0];
-		var tStartHour = parseInt( tStart.split(':')[0] );
-		var tStartMinutes = tStart.split(':')[1], tStartMinutes = tStartMinutes.split(' '), tStartMinutes = parseInt(tStartMinutes[0]);
-		if ( tStartHour < 12 && tStart.indexOf( 'PM' ) != -1 ) tStartHour += 12;
-		else if ( tStart.match( /AM/ ) && tStartHour == 12 )
-			tStartHour = 0;
-		
-		var tEnd = data[0].split('-')[1];
-		var tEndHour = parseInt( tEnd.split(':')[0] );
-		var tEndMinutes = tEnd.split(':')[1], tEndMinutes = tEndMinutes.split(' '), tEndMinutes = parseInt(tEndMinutes[0]);
-		if ( tEndHour < 12 && tEnd.match( /PM/ ) ) tEndHour += 12;
-		else if ( tEnd.match( /AM/ ) && tEndHour == 12 )
-			tEndHour = 0;
-		
-		var dStart = new Date( date );
-		dStart.setHours( tStartHour );
-		dStart.setMinutes( tStartMinutes );
-		
-		var dEnd = new Date( date );
-		dEnd.setHours( tEndHour );
-		dEnd.setMinutes( tEndMinutes );
-		
-		if ( dStart > dEnd )
-			dEnd.setDate( dEnd.getDate() + 1 );
-		
-		data[1] = data[1].replace( '&amp;', '&' );
-		
-		shifts.push( { description: data[1], dateTimeStart: dStart, dateTimeEnd: dEnd, week: weekNum  } );
-	}
-	
-	return shifts;
-}
-
-function populateEventsArray(){
-	Events = [];
-	
-	if ( isSupervisor )
-		Events = getSupervisorShifts();
-	else
-		Events = getNormalShifts();
+	});
 }
 
 // this is for the export button added to the top right of the screen
 function handleButtonClick(){
-	if ( getCheckedBoxes().length > 0 ){
-		document.getElementById( 'exportButton' ).removeEventListener( 'click', handleButtonClick );
-		
-		populateEventsArray();
-		
-		$('#checkBoxes').remove();
-		
-		Events.length < 10 ? $('#exportButton').html( '<span id="num">0</span>/<span id="dem">0</span>' ) : $('#exportButton').html( '<span id="num">00</span>/<span id="dem">00</span>' );
-		$('#dem').html( Events.length.toString() );
-		
-		for ( e of Events ){		
-			var data = JSON.stringify( eventToGoogleEvent( e ) );
-			
-			chrome.runtime.sendMessage( { 'data': data, 'type': 'addEvent' }, (resp) => {} );
-		}
-	}
-	else{
-		console.info( 'No weeks selected!' );
-	}
+	populateEvents();
 }
 
 // adds export button to top right of the screen
@@ -325,55 +319,4 @@ function addButton(){
 	exportButton.style.cursor = 'pointer';
 	exportButton.addEventListener( 'click', handleButtonClick );
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
-}
-
-// adds check boxes to top right of screen for week export selection
-function addCheckBoxes(){
-	if ( !document.getElementById( 'checkBoxes' ) ){
-		var a = document.createElement( 'a' );
-		a.id = 'checkBoxes';
-		var inputs = [];
-		
-		var nWeeks;
-		if ( isSupervisor )
-			nWeeks = document.getElementsByClassName('trDayWeek')[0].parentElement.childNodes.length - 4;
-		else
-			nWeeks = document.getElementsByClassName('summBox').length;
-		
-		for ( var i = 0; i < nWeeks; i++ )
-			inputs.push( document.createElement( 'input' ) );
-			
-		for ( var i = 0; i < inputs.length; i++ ){
-			inputs[i].type = 'checkbox';
-			inputs[i].id = 'checkBox' + i.toString();
-			inputs[i].checked = false;
-			a.appendChild( inputs[i] );
-			
-			var span = document.createElement( 'span' );
-			span.innerHTML = (i+1).toString();
-			span.style = 'font-size:11px;vertical-align:25%';
-			a.appendChild( span );
-		}
-		
-		var rightmenu = document.getElementsByClassName( 'rightmenu' )[0];
-		rightmenu.insertBefore( a, rightmenu.childNodes[0] );
-	}
-}
-
-// returns array of indexes that have been checked
-function getCheckedBoxes(){
-	var checkBoxes = document.getElementById( 'checkBoxes' );
-	var checked = [];
-	
-	if ( checkBoxes ){
-		var inputs = checkBoxes.getElementsByTagName( 'input' );
-		for ( var i = 0; i < inputs.length; i++ ){
-			if ( inputs[i].checked )
-				checked.push( i );
-		}
-	}
-	else
-		console.error( 'checkBoxes is not defined' );
-	
-	return checked;
 }

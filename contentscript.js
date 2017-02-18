@@ -86,9 +86,9 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 
 	switch ( getPage() ){
 	case 'calendar':
+		chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
 		$(window).focus( handleWindowFocus );
 		addButton();
-		addCheckBoxes();
 		if ( isSupervisor ){
 			setCalendarDateInfo();
 			calculateDailyTotals();
