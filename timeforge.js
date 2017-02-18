@@ -213,17 +213,52 @@ function getMonthInt( str ){
 }
 
 function getNormalShifts(){
-	var shifts = {};
+	var shifts = [];
 	
-	var divs = document.getElementsByClassName('divContend');
-	
-	var tmp = document.getElementsByClassName('summBox');
-	var trs = [];
-	for ( var i = 0; i < tmp.length; i++ )
-		trs.push( tmp[i].parentNode );
-	
-	for ( var i = 0; i < trs.length; i++ ){
-		var tds = trs[i].getElementsByTagName('td');
+	var tables = document.getElementsByClassName('divContentTableBordeNormal');
+	for ( var i = 0; i < tables.length; i++ ){
+		curTable = tables[i];
+		
+		try{
+			var dateStr = curTable.getElementsByClassName('tdDayWeekTitle')[0].id.match(/..\/..\/..../)[0];
+		}catch(err){
+			try{
+				var dateStr = curTable.getElementsByClassName('tdDayWeekTitlePickUp')[0].id.match(/..\/..\/..../)[0];
+			}catch(err){
+				console.log( i, curTable );
+			}
+		}
+		
+		var images = curTable.getElementsByTagName('img');
+		var targetImages = [];
+		for ( image of images )
+			if ( image.src.indexOf( '/Scheduler/images/schedule.png' ) != -1 )
+				targetImages.push( image );
+			
+		for ( image of targetImages ){
+			var data = image.parentNode.parentNode.getElementsByClassName('spanItemCalendar')[0].innerHTML.split('<br>');
+			var time = data[0].trim();
+			var line = data[1].trim();
+			
+			var newEvent = new dataToGoogleEvent( dateStr, time, line )
+			var newEventDatetimeStart = new Date( newEvent.start.dateTime );
+			var newEventDatetimeEnd = new Date( newEvent.end.dateTime );
+			
+			var okay = true;
+			
+			for ( var k = 0; k < LoadedEvents.length; k++ ){
+				eStart = new Date(LoadedEvents[k].start);
+				eEnd = new Date(LoadedEvents[k].end);
+				
+				if ( newEventDatetimeStart >= eStart && newEventDatetimeStart <= eEnd )
+					okay = false;
+				else if ( newEventDatetimeEnd >= eStart && newEventDatetimeEnd <= eEnd )
+					okay = false;
+			}
+			
+			if ( okay )
+				shifts.push( newEvent );
+		}
 	}
 	
 	return shifts;
@@ -253,7 +288,7 @@ function getSupervisorShiftData(){
 				var time = shiftInfo[0].trim();
 				var line = shiftInfo[1].trim();
 				
-				var newEvent = dataToGoogleEvent( date, time, line )
+				var newEvent = new dataToGoogleEvent( date, time, line )
 				var newEventDatetimeStart = new Date( newEvent.start.dateTime );
 				var newEventDatetimeEnd = new Date( newEvent.end.dateTime );
 				
