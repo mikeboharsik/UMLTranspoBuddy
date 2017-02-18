@@ -72,6 +72,7 @@ function getSelectedCalendarInfo(){
 function handleSetCalendarIDButtonClick(){
 	var calInfo = getSelectedCalendarInfo();
 	if ( calInfo ){
+		chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
 		chrome.storage.local.set( { calendar: { id: calInfo.id, summary: calInfo.summary } }, () => {
 			$('#changeCalendarIDButton').css( { display: 'inline' } );
 			$('#setCalendarIDButton').css( { display: 'none' } );
