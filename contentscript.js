@@ -48,6 +48,7 @@ function getPage(){
 	else if ( urlContains( 'bulkEnterAttendance' ) ) return 'attendance';
 	else if ( urlContains( 'routes' ) ) return 'routes';
 	else if ( urlContains( 'timeCard' ) ) return 'timecard';
+	else if ( urlContains( 'EMPLOYEE' ) ) return 'hr';
 	else return undefined;
 }
 
@@ -73,6 +74,43 @@ function handleWindowFocus(){
 	});
 }
 
+function sendTimeData(){
+	chrome.storage.local.get( ['timecardHours','shouldSend'], data=>{
+		if ( data.shouldSend ){
+			chrome.storage.local.set( { shouldSend: false }, resp=>{
+				console.log( "I see your hours", data.timecardHours );
+
+				var url = 'https://sm-prd.hcm.umasscs.net/psc/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL'
+				var stateNum = parseInt(document.getElementsByTagName('iframe')[0].contentWindow.document.getElementById('ICStateNum').value) + 1;
+
+				var xhr = new XMLHttpRequest();
+				xhr.open( 'POST', url );
+				xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+				xhr.onreadystatechange = ()=>{
+					if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+						location.reload();
+					}
+				};
+				
+				var startDate = data.timecardHours.startDateStr;
+				var dates = data.timecardHours.dates;
+				
+				var sendStr = `ICStateNum=${stateNum}&ICAction=TL_LINK_WRK_SUBMIT_PB&DERIVED_TL_WEEK_VIEW_BY_LIST$9$=Z&DATE_DAY1=${startDate}`;
+				
+				for ( var i = 0; i < dates.length; i++ )
+					sendStr = sendStr.concat( `&QTY_DAY${dates[i].dayNum}$0=${dates[i].hours.toFixed(3)}` );
+				
+				console.log( sendStr );
+				
+				xhr.send( sendStr );
+			});
+		}else{
+			console.log( "Skipping send!" );
+		}
+	});
+}
+
 /* BEGIN ACTUAL WEBPAGE LOGIC */
 var isSupervisor = false;
 
@@ -80,43 +118,47 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
 
 	switch ( getPage() ){
-	case 'calendar':
-		chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
-		$(window).focus( handleWindowFocus );
-		addButton();
-		if ( isSupervisor ){
-			setCalendarDateInfo();
-			calculateDailyTotals();
-			calculateWeeklyTotals();
-			addPickUpShiftsLink();
-			addPickUpShiftsDropdown();
-		}
-		if ( !data.calendar ){
-			var exportButton = document.getElementById( 'exportButton' );
+		case 'calendar':
+			chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
+			$(window).focus( handleWindowFocus );
+			addButton();
+			if ( isSupervisor ){
+				setCalendarDateInfo();
+				calculateDailyTotals();
+				calculateWeeklyTotals();
+				addPickUpShiftsLink();
+				addPickUpShiftsDropdown();
+			}
+			if ( !data.calendar ){
+				var exportButton = document.getElementById( 'exportButton' );
+				
+				$('#checkBoxes').css( { display: 'none' } );
+				$('#exportButton').html( 'Select calendar!' );
+				exportButton.removeEventListener( 'click', handleButtonClick );
+				exportButton.addEventListener( 'click', requestOptionsPage );
+			}
+			break;
+
+		case 'routes':
+			chrome.storage.local.get( 'roadsterEnabled', ( data ) => {
+				if ( data.roadsterEnabled == true ) 
+					doRoadsterStuff();
+			});
+			break;
 			
-			$('#checkBoxes').css( { display: 'none' } );
-			$('#exportButton').html( 'Select calendar!' );
-			exportButton.removeEventListener( 'click', handleButtonClick );
-			exportButton.addEventListener( 'click', requestOptionsPage );
-		}
-		break;
+		case 'attendance':
+			console.info( 'Attendance page' );
+			break;
 
-	case 'routes':
-		chrome.storage.local.get( 'roadsterEnabled', ( data ) => {
-			if ( data.roadsterEnabled == true ) 
-				doRoadsterStuff();
-		});
-		break;
-		
-	case 'attendance':
-		console.info( 'Attendance page' );
-		break;
-
-	case 'timecard':
-		timecard_addButton();
-		break;
-		
-	default:
-		console.log( 'Encountered an unhandled URL.' );
+		case 'timecard':
+			timecard_addButton();
+			break;
+			
+		case 'hr':
+			sendTimeData();
+			break;
+			
+		default:
+			console.log( 'Encountered an unhandled URL.' );
 	}
 });

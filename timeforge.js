@@ -366,9 +366,14 @@ function fix( f ){
 }
 
 function timecard_getDatesAndTimes(){
+	var startDateStr = document.getElementsByTagName('h2')[0].innerHTML;
+	startDateStr = startDateStr.match(/(..\/..\/....) /)[1];
+	
+	var curDate = new Date( startDateStr );
+	
 	var table = document.getElementsByClassName('employeeList')[0];
 	var rows = table.getElementsByTagName('tr');
-	var dates = [];
+	var dates = { startDateStr: startDateStr, dates: [] };
 	for ( var i = 1; i < rows.length - 1; i++ ){
 		var cells = rows[i].getElementsByTagName('td');
 		var date = cells[0].innerHTML.trim();
@@ -377,13 +382,28 @@ function timecard_getDatesAndTimes(){
 		
 		var timeStart = new Date( `${date} ${timeIn}` );
 		var timeEnd = new Date( `${date} ${timeOut}` );
+		
+		while ( curDate.getDate() < timeStart.getDate() ){
+			dates.dates.push( { dayNum:dates.dates.length+1, hours:0.000 } );
+			curDate.setDate( curDate.getDate() + 1 );
+		}
+		
 		var hours = (timeEnd - timeStart) / 3600000;
 		
 		var fixed = parseFloat( fix(hours).toFixed(3) );
 		
-		dates.push( { date:date, hours:fixed } );
+		dates.dates.push( { dayNum:dates.dates.length+1, hours:fixed } );
 	}
-	chrome.storage.local.set( { timecardHours: dates }, resp=>{} );
+	
+	while ( dates.dates.length < 14 ){
+		dates.dates.push( { dayNum:dates.dates.length+1, hours:0.000 } );
+		curDate.setDate( curDate.getDate() + 1 );
+	}
+	
+	console.log( dates );
+	chrome.storage.local.set( { timecardHours: dates, shouldSend: true }, resp=>{
+		chrome.runtime.sendMessage( { type: 'openHRTab' }, resp=>{} );
+	} );
 }
 
 function timecard_addButton(){

@@ -10,9 +10,11 @@
 	"content_scripts": [ {
 		"matches": [
 			"*://*.timeforge.com/Scheduler/*",
-			"*://*.uml.edu/routes/*"
+			"*://*.uml.edu/routes/*",
+			"https://sm-prd.hcm.umasscs.net/psp/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL"
 			],
-		"js": ["jquery.js","jquery-ui.js","timeforge.js","roadster.js","contentscript.js"]
+		"js": ["jquery.js","jquery-ui.js","timeforge.js","roadster.js","contentscript.js"],
+		"run_at": "document_idle"
 		}
 	],
 	
@@ -47,7 +49,8 @@
 		"storage",
 		"identity",
 		"https://*.uml.edu/routes/*",
-		"https://*.timeforge.com/Scheduler/*"
+		"https://*.timeforge.com/Scheduler/*",
+		"https://sm-prd.hcm.umasscs.net/psp/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL"
 	],
 	
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuNoszGaevOAOp3A2qSA41UdzIAr6sZYuGT8tKBf0+vMesqQz3LP0LxWTs3TbGwV/wwGAZvN5JmyxOiJSlkRZQhVW6qhPP4tuUQR4ULUlFeogd/8RYpZuyNDa8P2nm+xkwFDUF2o3prDDjL2zL/bkw1fJQXqORu3cy6wwmBarn78fGBYQsKb954m/fuUgO3/a1WPK547nHuhqaBrmUy4Br3gvQQHh7fBvhJFBqXx4NEDty7X+WRP+gW3JSz7hHvmFVfOinbWIuFghJJxtZrbJ5pQGfQIH/1hJDIVWKh0aQTnctcIx9fIC5I0tdMmcw07qr7B1M35KfboLtTstvNl78QIDAQAB"

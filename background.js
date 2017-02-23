@@ -78,6 +78,12 @@ function openOptionsTab(){
 	chrome.tabs.create( { url: 'options.html' } );
 }
 
+function openHRTab(){
+	var hrURL = 'https://sm-prd.hcm.umasscs.net/psp/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL';
+	
+	chrome.tabs.create( { url: hrURL }, tab=>{} );
+}
+
 chrome.runtime.onMessage.addListener(
 	( request, sender, sendResponse ) => {
 		//console.log( request );
@@ -93,6 +99,10 @@ chrome.runtime.onMessage.addListener(
 				
 			case 'openOptionsTab':
 				openOptionsTab();
+				break;
+				
+			case 'openHRTab':
+				openHRTab();
 				break;
 				
 			case 'getCalendarEvents':
