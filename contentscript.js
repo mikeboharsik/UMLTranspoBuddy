@@ -43,17 +43,12 @@ function urlContains( tar ){
 
 function getPage(){
 	if ( ( isSupervisor && urlContains( 'employeeSchedules' ) ) ||
-		( !isSupervisor && urlContains( 'Scheduler/sa/index' ) ) ){
+		( !isSupervisor && urlContains( 'Scheduler/sa/index' ) ) )
 		return 'calendar';
-	}
-	else if ( urlContains( 'bulkEnterAttendance' ) ){
-		return 'attendance';
-	}
-	else if ( urlContains( 'routes' ) ){
-		return 'routes';
-	}
-	else
-		return undefined;
+	else if ( urlContains( 'bulkEnterAttendance' ) ) return 'attendance';
+	else if ( urlContains( 'routes' ) ) return 'routes';
+	else if ( urlContains( 'timeCard' ) ) return 'timecard';
+	else return undefined;
 }
 
 function requestOptionsPage(){
@@ -117,6 +112,10 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 		console.info( 'Attendance page' );
 		break;
 
+	case 'timecard':
+		timecard_addButton();
+		break;
+		
 	default:
 		console.log( 'Encountered an unhandled URL.' );
 	}

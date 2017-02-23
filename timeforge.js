@@ -355,3 +355,47 @@ function addButton(){
 	exportButton.addEventListener( 'click', handleButtonClick );
 	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
 }
+
+function fix( f ){
+	var r = f % 0.25;
+	if ( r > 0 ){
+		f -= r;
+		f += 0.25;
+	}
+	return f;
+}
+
+function timecard_getDatesAndTimes(){
+	var table = document.getElementsByClassName('employeeList')[0];
+	var rows = table.getElementsByTagName('tr');
+	var dates = [];
+	for ( var i = 1; i < rows.length - 1; i++ ){
+		var cells = rows[i].getElementsByTagName('td');
+		var date = cells[0].innerHTML.trim();
+		var timeIn = cells[1].innerHTML.trim().replace(/([0-9])([AP])/,'$1 $2');
+		var timeOut = cells[2].innerHTML.trim().replace(/([0-9])([AP])/,'$1 $2');
+		
+		var timeStart = new Date( `${date} ${timeIn}` );
+		var timeEnd = new Date( `${date} ${timeOut}` );
+		var hours = (timeEnd - timeStart) / 3600000;
+		
+		var fixed = parseFloat( fix(hours).toFixed(3) );
+		
+		dates.push( { date:date, hours:fixed } );
+	}
+	chrome.storage.local.set( { timecardHours: dates }, resp=>{} );
+}
+
+function timecard_addButton(){
+	var rightmenu = document.getElementsByClassName( 'rightmenu' )[0];
+	var exportButton = document.createElement( 'a' );
+	exportButton.id = 'exportButton';
+	exportButton.innerHTML = 'Export';
+	exportButton.style.cursor = 'pointer';
+	exportButton.addEventListener( 'click', timecard_handleButtonClick );
+	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
+}
+
+function timecard_handleButtonClick(){
+	timecard_getDatesAndTimes();
+}
