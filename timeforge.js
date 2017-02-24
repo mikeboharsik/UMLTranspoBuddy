@@ -407,15 +407,74 @@ function timecard_getDatesAndTimes(){
 }
 
 function timecard_addButton(){
-	var rightmenu = document.getElementsByClassName( 'rightmenu' )[0];
-	var exportButton = document.createElement( 'a' );
+	var h2 = document.getElementsByTagName('h2')[0];
+	var exportButton = document.createElement( 'input' );
+	exportButton.type = 'button';
 	exportButton.id = 'exportButton';
-	exportButton.innerHTML = 'Export';
-	exportButton.style.cursor = 'pointer';
+	exportButton.value = 'Export to HR Direct';
 	exportButton.addEventListener( 'click', timecard_handleButtonClick );
-	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
+	h2.appendChild( document.createElement('br') );
+	h2.appendChild( exportButton );
 }
 
 function timecard_handleButtonClick(){
 	timecard_getDatesAndTimes();
+}
+
+function getPersonMap(){
+	var personMap = {};
+	var options = document.getElementById('emp1').getElementsByTagName('option');
+	for ( var i = 1; i < options.length; i++ ){
+		var value = options[i].value;
+		var name = options[i].innerHTML;
+		personMap[name] = value;
+	}
+	return personMap;
+}
+
+function getPositionArray(){
+	var positionArray = [];
+	positionArray.push( { name: 'Co-Driver: Night Service', number: '76129' } );
+	positionArray.push( { name: 'Dispatcher', number: '40387' } );
+	positionArray.push( { name: 'Driver: Ayotte 1 (DEL)', number: '41380' } );
+	positionArray.push( { name: 'Driver: Ayotte 1 (Morning)', number: '40403' } );
+	positionArray.push( { name: 'Driver: Ayotte 2', number: '41379' } );
+	positionArray.push( { name: 'Driver: Ayotte 2 (Morning)', number: '40402' } );
+	positionArray.push( { name: 'Driver: Ayotte 3', number: '1087469' } );
+	positionArray.push( { name: 'Driver: Ayotte 4', number: '1087470' } );
+	positionArray.push( { name: 'Driver: Blue (Opening Week)', number: '1087474' } );
+	positionArray.push( { name: 'Driver: Floater/Swing', number: '106842' } );
+	positionArray.push( { name: 'Driver: Green North', number: '1137790' } );
+	positionArray.push( { name: 'Driver: Green North 1', number: '41375' } );
+	positionArray.push( { name: 'Driver: Green North 2', number: '41382' } );
+	positionArray.push( { name: 'Driver: Green South', number: '1137792' } );
+	positionArray.push( { name: 'Driver: Green South 1', number: '41376' } );
+	positionArray.push( { name: 'Driver: Green South 2', number: '41378' } );
+	positionArray.push( { name: 'Driver: Highland\'s', number: '93119' } );
+	positionArray.push( { name: 'Driver: Highland\'s (Morning)', number: '80520' } );
+	positionArray.push( { name: 'Driver: Night & Weekend Service', number: '121773' } );
+	positionArray.push( { name: 'Driver: Night &amp} ); Weekend Service', number: '121773' } );
+	positionArray.push( { name: 'Driver: Purple', number: '1137796' } );
+	positionArray.push( { name: 'Driver: Purple (03 Only)', number: '1137795' } );
+	positionArray.push( { name: 'Driver: Red (Opening Week)', number: '1087473' } );
+	positionArray.push( { name: 'Driver: Red East', number: '80884' } );
+	positionArray.push( { name: 'Driver: Red East 2', number: '40415' } );
+	positionArray.push( { name: 'Driver: Red East 3', number: '76128' } );
+	positionArray.push( { name: 'Driver: Silver (Drumhill)', number: '40911' } );
+	positionArray.push( { name: 'Driver: Yellow East', number: '40409' } );
+	positionArray.push( { name: 'Driver: Yellow East 2', number: '40411' } );
+	positionArray.push( { name: 'Driver: Yellow East 3', number: '76127' } );
+	positionArray.push( { name: 'Driver: Yellow North (Opening Week)', number: '1087473' } );
+	positionArray.push( { name: 'Driver: Yellow South', number: '1137794' } );
+	positionArray.push( { name: 'Driver: Yellow South 1', number: '41374' } );
+	positionArray.push( { name: 'Driver: Yellow South 1 (Morning)', number: '40406' } );
+	positionArray.push( { name: 'Driver: Yellow South 2', number: '40407' } );
+	positionArray.push( { name: 'Driver: Yellow South 2 (Morning)', number: '93120' } );
+	positionArray.push( { name: 'Driver: Yellow South (03 Only)', number: '1137793' } );
+	positionArray.push( { name: 'Purple Special Pickup', number: '1267227' } );
+	positionArray.push( { name: 'Driver: Shift Supervisor', number: '40390' } );
+	positionArray.push( { name: 'Driver: Special Event', number: '40957' } );
+	positionArray.push( { name: 'Driver: Summer Service', number: '1165643' } );
+	positionArray.push( { name: 'Driver: Team Coordinator', number: '40392' } );
+	return positionArray;
 }
