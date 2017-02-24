@@ -393,6 +393,7 @@ function timecard_getDatesAndTimes(){
 		var fixed = parseFloat( fix(hours).toFixed(3) );
 		
 		dates.dates.push( { dayNum:dates.dates.length+1, hours:fixed } );
+		curDate.setDate( curDate.getDate() + 1 );
 	}
 	
 	while ( dates.dates.length < 14 ){
@@ -400,7 +401,6 @@ function timecard_getDatesAndTimes(){
 		curDate.setDate( curDate.getDate() + 1 );
 	}
 	
-	console.log( dates );
 	chrome.storage.local.set( { timecardHours: dates, shouldSend: true }, resp=>{
 		chrome.runtime.sendMessage( { type: 'openHRTab' }, resp=>{} );
 	} );

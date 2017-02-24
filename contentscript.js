@@ -78,8 +78,6 @@ function sendTimeData(){
 	chrome.storage.local.get( ['timecardHours','shouldSend'], data=>{
 		if ( data.shouldSend ){
 			chrome.storage.local.set( { shouldSend: false }, resp=>{
-				console.log( "I see your hours", data.timecardHours );
-
 				var url = 'https://sm-prd.hcm.umasscs.net/psc/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL'
 				var stateNum = parseInt(document.getElementsByTagName('iframe')[0].contentWindow.document.getElementById('ICStateNum').value) + 1;
 
@@ -101,12 +99,10 @@ function sendTimeData(){
 				for ( var i = 0; i < dates.length; i++ )
 					sendStr = sendStr.concat( `&QTY_DAY${dates[i].dayNum}$0=${dates[i].hours.toFixed(3)}` );
 				
-				console.log( sendStr );
-				
 				xhr.send( sendStr );
 			});
 		}else{
-			console.log( "Skipping send!" );
+			//console.log( "Skipping send!" );
 		}
 	});
 }
