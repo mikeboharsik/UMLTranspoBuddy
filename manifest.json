@@ -4,7 +4,7 @@
 	"name": "UML Transportation Buddy",
 	"short_name": "UMLTranspoBuddy",
 	"description": "Adds functionality to TimeForge and RoadsterRoutes",
-	"version": "1.1",
+	"version": "1.2",
 	"homepage_url": "https://chrome.google.com/webstore/detail/timeforge-buddy/bfkmbblnbolddmpjilidejgbngefckcc",
   
 	"content_scripts": [ {
