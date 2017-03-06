@@ -99,6 +99,8 @@ function sendTimeData(){
 				for ( var i = 0; i < dates.length; i++ )
 					sendStr = sendStr.concat( `&QTY_DAY${dates[i].dayNum}$0=${dates[i].hours.toFixed(3)}` );
 				
+				sendStr = sendStr.concat( `&TRC$0=STYSH` );
+				
 				xhr.send( sendStr );
 			});
 		}else{
