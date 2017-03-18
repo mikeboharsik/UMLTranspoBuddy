@@ -101,7 +101,17 @@ function sendTimeData(){
 				
 				sendStr = sendStr.concat( `&TRC$0=STYSH` );
 				
-				xhr.send( sendStr );
+				var startDate = new Date( data.timecardHours.startDateStr );
+				var confirmStr = 'By clicking OK, you are confirming that the following information is accurate:\n\n';
+				for ( var i = 0; i < dates.length; i++ ){
+					var curDate = new Date( startDate );
+					curDate.setDate( startDate.getDate() + ( dates[i].dayNum - 1 ) );
+					confirmStr = confirmStr.concat( `${curDate.toLocaleDateString()}: ${dates[i].hours} hours\n` );
+				}
+				confirmStr = confirmStr.concat( '\nYou are responsible for ensuring the hours you work are accurately reflected in HR Direct.' );
+				
+				if ( confirm( confirmStr ) )
+					xhr.send( sendStr );
 			});
 		}else{
 			//console.log( "Skipping send!" );
