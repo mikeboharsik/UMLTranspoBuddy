@@ -347,13 +347,15 @@ function handleButtonClick(){
 
 // adds export button to top right of the screen
 function addButton(){
-	var rightmenu = document.getElementsByClassName( 'rightmenu' )[0];
+	var menu = document.getElementsByClassName('location-menu')[0];
+	var li = document.createElement( 'li' );
 	var exportButton = document.createElement( 'a' );
 	exportButton.id = 'exportButton';
-	exportButton.innerHTML = 'Export';
+	exportButton.innerHTML = 'Export Schedule';
 	exportButton.style.cursor = 'pointer';
 	exportButton.addEventListener( 'click', handleButtonClick );
-	rightmenu.insertBefore( exportButton, rightmenu.childNodes[0] );
+	li.appendChild( exportButton );
+	menu.appendChild( li );
 }
 
 function fix( f ){
