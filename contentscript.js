@@ -61,7 +61,7 @@ function handleWindowFocus(){
 		var exportButton = document.getElementById( 'exportButton' );
 		if ( item.calendar ){
 			$('#checkBoxes').css( { display: 'inline' } );
-			$('#exportButton').html( 'Export' );
+			$('#exportButton').html( 'Export Schedule' );
 			exportButton.removeEventListener( 'click', requestOptionsPage );
 			exportButton.addEventListener( 'click', handleButtonClick );
 		}
@@ -124,7 +124,7 @@ var isSupervisor = false;
 
 chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => { 
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
-
+	
 	switch ( getPage() ){
 		case 'calendar':
 			chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
@@ -153,7 +153,6 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			break;
 			
 		case 'attendance':
-			console.info( 'Attendance page' );
 			break;
 
 		case 'timecard':

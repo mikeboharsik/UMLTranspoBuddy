@@ -236,17 +236,12 @@ function getSupervisorShiftData(){
 	
 	var initialBoxes = document.getElementsByClassName('tdDayWeekTitle');
 	for ( var i = 0; i < initialBoxes.length; i++ ){		
-		var prevMonth = false, nextMonth = false;
-		
 		var currentBox = initialBoxes[i];
 		
 		try{
 			var date = new Date(currentBox.getElementsByClassName('hint-down')[0].id.match(/..\/..\/..../)[0]);
 		}
 		catch( err ){ continue; }
-		
-		if ( i < 7 && date.getDate() > 7 ) prevMonth = true;
-		else if ( i > 28 && date.getDate() < 7 ) nextMonth = true;
 		
 		var shiftBoxRows = currentBox.parentNode.parentNode.children[1].getElementsByTagName('tr');
 		if ( shiftBoxRows ){
@@ -314,7 +309,7 @@ function handleButtonClick(){
 
 // adds export button to top of the screen
 function addButton(){
-	var menu = document.getElementsByClassName('location-menu')[0];
+	var menu = document.getElementsByClassName('location-menu')[0] || document.getElementsByClassName('employee-menu')[0];
 	var li = document.createElement( 'li' );
 	var exportButton = document.createElement( 'a' );
 	exportButton.id = 'exportButton';
