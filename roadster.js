@@ -10,42 +10,25 @@ function hideNumbers(){
     $('body').removeClass('showLabels');
 }
 
-function shouldShowNumbers(){
-	var expires = new Date();
-	expires.setYear( expires.getYear() + 1900 + 1 );
-	
-    if ( document.cookie.indexOf( 'showNumbers' ) == -1 ){
-        document.cookie = 'showNumbers=false; expires=' + expires;
-        return false;
-    }
-    else{
-        if ( document.cookie.indexOf( 'showNumbers=true' ) != -1 )
-            return true;
-        else if ( document.cookie.indexOf( 'showNumbers=false' ) != -1 )
-            return false;
-        else
-            console.error( 'BIG PROBLEM IN shouldShowNumbers' );
-    }
-}
-
-function cookieToggle(){
-	var expires = new Date();
-	expires.setYear( expires.getYear() + 1900 + 1 );
-	
+function storageToggle(){
     var toggle = $('#permNumbersToggle');
-    if ( shouldShowNumbers() ){
-        toggle.prop( 'innerHTML', 'NUMBERS OFF' );
-        toggle.css( { 'color': 'crimson' } );
-        
-        document.cookie = 'showNumbers=false; expires=' + expires;
-        hideNumbers();
-    }
-    else{
-        toggle.prop( 'innerHTML', 'NUMBERS ON' );
-        toggle.css( { 'color': 'chartreuse' } );
-        document.cookie = 'showNumbers=true; expires=' + expires;
-        showNumbers();
-    }
+	
+	chrome.storage.local.get( 'showNumbers', (resp)=>{
+		if ( resp.showNumbers ){
+			toggle.prop( 'innerHTML', 'NUMBERS OFF' );
+			toggle.css( { 'color': 'crimson' } );
+			
+			chrome.storage.local.set( { showNumbers: false }, null );
+			hideNumbers();
+		}
+		else{
+			toggle.prop( 'innerHTML', 'NUMBERS ON' );
+			toggle.css( { 'color': 'chartreuse' } );
+			
+			chrome.storage.local.set( { showNumbers: true }, null );
+			showNumbers();
+		}
+	});
 }
 
 function bannerResize(){
@@ -56,26 +39,27 @@ function bannerResize(){
 
 function doRoadsterStuff(){
 	$("body").append( '<div id="permNumbersToggle"></div>' );
-    var toggle = $('#permNumbersToggle');    
-    if ( shouldShowNumbers() ){
-        toggle.prop( 'innerHTML', 'NUMBERS ON' );
-        toggle.css( { 'color': 'chartreuse' } );
-    }
-    else{
-        toggle.prop( 'innerHTML', 'NUMBERS OFF' );
-        toggle.css( { 'color': 'crimson' } );
-    }    
+    var toggle = $('#permNumbersToggle');
     toggle.css( { 'position': 'absolute', 'width': 'auto',
 				'margin-left': window.innerWidth / 2, 'margin-top': '10px',
 				'font-size': '16px', 'font-weight': 'bold', 'z-index': 1, 
 				'cursor': 'pointer' } );
-    toggle.click( cookieToggle );
+    toggle.click( storageToggle );
     
-    if ( shouldShowNumbers() ){
-        showNumbers();
-	}
-	
-    $(window).resize( bannerResize );
+	chrome.storage.local.get( 'showNumbers', (resp)=>{		
+		var toggle = $('#permNumbersToggle');
+		
+		if ( resp.showNumbers ){
+			toggle.prop( 'innerHTML', 'NUMBERS ON' );
+			toggle.css( { 'color': 'chartreuse' } );
+			showNumbers();
+		}
+		else{
+			toggle.prop( 'innerHTML', 'NUMBERS OFF' );
+			toggle.css( { 'color': 'crimson' } );
+		}
+		$(window).resize( bannerResize );
+	});
 }
 
 var RDSTR_busesLoaded = [];
