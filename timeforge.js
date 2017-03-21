@@ -76,69 +76,86 @@ function getDiffInHours( startStr, endStr ){
 
 // go through each calendar cell and calculate hours for each day
 function calculateDailyTotals(){
-	targetChildren = document.getElementsByClassName( 'shiftInfo' );
-	targets = [];
-	for ( var i = 0; i < targetChildren.length; i++ )
-		targets.push( targetChildren[i].parentElement );
-
-	for ( var i = 0; i < targets.length; i++ ){
-		table = targets[i].getElementsByTagName( 'table' )[0];
+	var allCells = document.getElementsByClassName('tdDayWeekTitle');
+	for ( var i = 0; i < allCells.length; i++ ){
+		try{
+			var weekNum = i / 7;
+			
+			var curCell = allCells[i];
 		
-		if ( i > 0 && targets[i-1] == targets[i] ){
-			// really bad programming here, assuming max of 2 shifts in a day
-			var curStr = table.rows[2].cells[0].innerHTML.trim();
-			var startStr = curStr.substr( 0, 8 );
-			var endStr = curStr.substr( 9, 8 );
+			var cellMonth, cellDate, cellDateStr;
 			
-			var totalTarget = targets[i].getElementsByClassName('dailyTotal')[0];
-			var existingVal = parseFloat(totalTarget.innerHTML);
-			var diff = getDiffInHours( startStr, endStr );
-			var result = existingVal + diff;
-			totalTarget.innerHTML = result.toFixed(2).toString();
-		}else{
-			var curStr = table.rows[0].cells[0].innerHTML.trim();
-			var startStr = curStr.substr( 0, 8 );
-			var endStr = curStr.substr( 9, 8 );
+			var otherMonthCell = curCell.getElementsByClassName('linkOtherMonth')[0];
 			
-			var newCol = document.createElement( 'td' );
-			newCol.className = 'dailyTotalTd';
-			newCol.innerHTML = 'Hours scheduled: ';
-			
-			var newSpan = document.createElement( 'span' );
-			newSpan.className = 'dailyTotal';
-			newSpan.innerHTML = getDiffInHours( startStr, endStr ).toFixed(2).toString();
-			newCol.appendChild( newSpan );
-			
-			var newRow = document.createElement( 'tr' ).appendChild( newCol );
-
-			targets[i].getElementsByTagName( 'table' )[0].appendChild( newRow );
+			var shiftInfoContainer = curCell.parentNode.parentNode.getElementsByClassName('divContend')[0];
+			for ( var trs = shiftInfoContainer.getElementsByTagName('tr'), j = 0; j < trs.length; j += 2 ){
+				var curContainer = trs[j].getElementsByTagName('td')[0];
+				
+				if ( curContainer ){
+					cellDateStr = curCell.getElementsByClassName('hint-down')[0].id.match(/..\/..\/..../)[0];
+				
+					var infoRaw = curContainer.innerHTML.trim().split('<br>');
+					var timeRaw = infoRaw[0].trim().split('-');
+					var positionStr = infoRaw[1].trim().replace('&amp;','&');
+					
+					var startTime = timeRaw[0];
+					var endTime = timeRaw[1];
+					
+					var startDateTime = new Date( `${cellDateStr} ${startTime}` );
+					var endDateTime = new Date( `${cellDateStr} ${endTime}` );
+					
+					if ( startTime.match(/PM/) && endTime.match(/AM/) )
+						endDateTime.setDate( endDateTime.getDate() + 1 );
+						
+					var hourDiff = ( (endDateTime - startDateTime) / 3600000 ).toFixed(2);
+					
+					var span = document.createElement('span');
+					span.className = 'dailyTotal';
+					span.innerHTML = `Hours: ${hourDiff}`;
+					curContainer.innerHTML += '<br>';
+					curContainer.appendChild( span );
+					
+					console.log( i, startDateTime.toLocaleString(), endDateTime.toLocaleString(), hourDiff );
+				}else{
+					continue;
+				}
+			}
 		}
-	}	
+		catch(e){
+			console.error( `Error with cell ${i}:\n${e}` );
+		}
+	}
 }
 
-// use previously calculated daily totals to get weekly totals
 function calculateWeeklyTotals(){
-	var totalTd = document.createElement( 'td' );
-	totalTd.innerHTML = 'Total';
-	
-	var table = document.getElementsByTagName( 'table' )[13];
-	var daysRow = table.getElementsByTagName( 'tr' )[2];
-	
-	daysRow.insertBefore( totalTd, daysRow.getElementsByTagName('td')[0] );
-	
-	for ( var i = 0; i < table.children[0].children.length - 2; i++ ){
-		var totals = table.children[0].children[2+i].getElementsByClassName( 'dailyTotal' );
-		var week = 0;
-		for ( var j = 0; j < totals.length; j++ )
-			week += parseFloat( totals[j].innerHTML );
+	var nodes = document.getElementsByClassName('trDayWeek')[0].parentNode.childNodes;
+	var rows = [];
+	for ( node of nodes ) if ( node.nodeType == 1 ) rows.push( node );
+	for ( var i = 1; i < rows.length; i++ ){
+		var td = document.createElement('td');
 		
-		var newTd = document.createElement( 'td' );
-		newTd.style.textAlign = 'center';
-		newTd.style.paddingRight = '2px';
-		newTd.style.border = '1px solid rgb(169,169,169)';
-		newTd.style.backgroundColor = 'rgb(240,240,240)';
-		newTd.innerHTML = week.toFixed(2).toString() + ' Hours';
-		table.children[0].children[2+i].insertBefore( newTd, table.children[0].children[2+i].getElementsByTagName('td')[0] );
+		if ( i == 1 ){
+			td.innerHTML = 'Total';
+		}else{
+			td.id = `totalWeek${i-2}`;
+			td.innerHTML = `<span class='hours'>0.00</span> hours`;
+			td.style = 'border:1px solid #AAA; text-align: center';
+		}
+		
+		rows[i].insertBefore( td, rows[i].childNodes[0] );
+	}
+	
+	var allCells = document.getElementsByClassName('tdDayWeekTitle');
+	for ( var i = 0; i < allCells.length; i++ ){
+		var nWeek = parseInt( i / 7 );
+		var totals = allCells[i].parentNode.parentNode.getElementsByClassName('dailyTotal');
+		if ( totals ){
+			var weekTotal = document.getElementById(`totalWeek${nWeek}`).getElementsByClassName('hours')[0];
+			for ( total of totals ){
+				var curTotal = parseFloat( total.innerHTML.match(/[0-9]+\.[0-9]+/)[0] );
+				weekTotal.innerHTML = (parseFloat( weekTotal.innerHTML ) + curTotal).toFixed(2);
+			}
+		}
 	}
 }
 
@@ -306,12 +323,12 @@ function populateEvents(){
 	});
 }
 
-// this is for the export button added to the top right of the screen
+// this is for the export button added to the top of the screen
 function handleButtonClick(){
 	populateEvents();
 }
 
-// adds export button to top right of the screen
+// adds export button to top of the screen
 function addButton(){
 	var menu = document.getElementsByClassName('location-menu')[0];
 	var li = document.createElement( 'li' );
