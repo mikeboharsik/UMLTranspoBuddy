@@ -179,22 +179,6 @@ function addPickUpShiftsLinks(){
 	div.appendChild( newDiv );
 }
 
-function getMonthInt( str ){
-	if ( str.indexOf( "Jan" ) != -1 ) return 1;
-	else if ( str.indexOf( "Feb" ) != -1 ) return 2;
-	else if ( str.indexOf( "Mar" ) != -1 ) return 3;
-	else if ( str.indexOf( "Apr" ) != -1 ) return 4;
-	else if ( str.indexOf( "May" ) != -1 ) return 5;
-	else if ( str.indexOf( "Jun" ) != -1 ) return 6;
-	else if ( str.indexOf( "Jul" ) != -1 ) return 7;
-	else if ( str.indexOf( "Aug" ) != -1 ) return 8;
-	else if ( str.indexOf( "Sep" ) != -1 ) return 9;
-	else if ( str.indexOf( "Oct" ) != -1 ) return 10;
-	else if ( str.indexOf( "Nov" ) != -1 ) return 11;
-	else if ( str.indexOf( "Dec" ) != -1 ) return 12;	
-	else return -1;
-}
-
 function getNormalShifts(){
 	var shifts = [];
 	
