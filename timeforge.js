@@ -142,30 +142,24 @@ function calculateWeeklyTotals(){
 	}
 }
 
-function addPickUpShiftsLink(){	
-	var row = document.getElementsByClassName( 'links3' )[0].parentElement.parentElement;
-	var tds = row.getElementsByTagName( 'td' );
-	var lastTd = tds[ tds.length - 1 ];
-	lastTd.innerHTML = '<div class="links2"><ul><li><div><a href="/Scheduler/sa/employeeGivenUpShifts.html">Pick Up Shifts</a></div></li></ul></div>';
-}
-
-function addPickUpShiftsDropdown(){
-	var pickUpShiftsParentDropdown = document.getElementById( 'schedulesBox' );
-	var pickUpShiftsLi = document.createElement( 'li' );
-	pickUpShiftsParentDropdown.appendChild( pickUpShiftsLi );
-
-	var pickUpShiftsLink = document.createElement( 'a' );
-	pickUpShiftsLi.appendChild( pickUpShiftsLink );
-
-	pickUpShiftsLink.href = '/Scheduler/sa/employeeGivenUpShifts.html';
-	pickUpShiftsLink.innerHTML = 'Pick Up Shifts';
-}
-
-function addPickUpShiftsLinkMainPage(){
-	var box = document.getElementById( 'schedulesBox' );
-	var li = document.createElement( 'li' );
-	li.innerHTML = '<a href="/Scheduler/sa/employeeGivenUpShifts.html">Pick Up Shifts</a>';
-	box.appendChild( li );
+function addPickUpShiftsLinks(){	
+	// link in dropdown at top
+	var ul = document.getElementsByClassName('location-menu')[0];
+	var childs = ul.childNodes;
+	var tmp = [];
+	for ( child of childs ) if ( child.nodeType == 1 ) tmp.push( child );
+	var li = tmp[4];
+	var ul2 = li.getElementsByClassName('submenu-ul')[0];
+	var newLi = document.createElement('li');
+	newLi.innerHTML = '<a href="/Scheduler/sa/employeeGivenUpShifts.html">Pick Up Shifts</a>';
+	ul2.appendChild( newLi );
+	
+	// link above calendar
+	var div = document.getElementsByClassName('breadcrumb-menu-wrap')[0];
+	var newDiv = document.createElement('div');
+	newDiv.className = 'cell-wrap';
+	newDiv.innerHTML = '<div class="links2" style="width: 52px;"><ul><li><div align="left"><a href="/Scheduler/sa/employeeGivenUpShifts.html">Pick Up Shifts</a></li></ul></div>';
+	div.appendChild( newDiv );
 }
 
 function getMonthInt( str ){

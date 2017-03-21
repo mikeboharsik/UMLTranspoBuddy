@@ -133,8 +133,7 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			if ( isSupervisor ){
 				calculateDailyTotals();
 				calculateWeeklyTotals();
-				addPickUpShiftsLink();
-				addPickUpShiftsDropdown();
+				addPickUpShiftsLinks();
 			}
 			if ( !data.calendar ){
 				var exportButton = document.getElementById( 'exportButton' );
