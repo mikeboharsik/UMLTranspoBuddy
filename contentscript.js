@@ -131,7 +131,6 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			$(window).focus( handleWindowFocus );
 			addButton();
 			if ( isSupervisor ){
-				setCalendarDateInfo();
 				calculateDailyTotals();
 				calculateWeeklyTotals();
 				addPickUpShiftsLink();

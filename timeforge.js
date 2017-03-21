@@ -1,33 +1,5 @@
-var monthYearString;
-var yearInt;
-var monthInt;
-
 var Events;
 var LoadedEvents;
-
-// get and store month/year information from calendar page in globals
-// yes, this is terrible. it is timeforge's fault for being so poorly written
-function getMonthYearString(){
-	if ( isSupervisor ){
-		var tmp = document.getElementsByTagName('table')[8];
-		tmp = tmp.getElementsByTagName('table')[2];
-		tmp = tmp.getElementsByTagName('table')[0]; 
-		tmp = tmp.getElementsByTagName('table')[0]; 
-		tmp = tmp.getElementsByTagName('table')[0];
-		tmp = tmp.getElementsByTagName('td')[1];
-		tmp = tmp.getElementsByTagName('h2')[0];
-		tmp = tmp.innerHTML.trim();
-		return tmp;
-	}
-	else
-		return document.getElementsByClassName('divWeekEdit')[0].innerHTML;
-}
-
-function setCalendarDateInfo(){
-	monthYearString = getMonthYearString();
-	yearInt = monthYearString.substr( monthYearString.length - 4, 4 );
-	monthInt = getMonthInt( monthYearString );
-}
 
 function dataToGoogleEvent( date, time, line ){		
 	var startTime = time.split('-')[0].trim();
