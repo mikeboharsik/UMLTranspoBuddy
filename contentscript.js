@@ -49,6 +49,7 @@ function getPage(){
 	else if ( urlContains( 'routes' ) ) return 'routes';
 	else if ( urlContains( 'timeCard' ) ) return 'timecard';
 	else if ( urlContains( 'EMPLOYEE' ) ) return 'hr';
+	else if ( urlContains( 'employees' ) ) return 'employeelist';
 	else return undefined;
 }
 
@@ -161,6 +162,10 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			
 		case 'hr':
 			sendTimeData();
+			break;
+			
+		case 'employeelist':
+			addEmployeeListButtons();
 			break;
 			
 		default:

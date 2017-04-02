@@ -444,3 +444,128 @@ function getPositionArray(){
 	positionArray.push( { name: 'Driver: Team Coordinator', number: '40392' } );
 	return positionArray;
 }
+
+function convertEmployeesToJSON( employeesArray ){
+	var result = JSON.stringify( employeesArray, null, '\t' );
+	var blob = new Blob( [result], { type: "text/json" } );
+	var url = window.URL.createObjectURL( blob );
+	var a = document.createElement( "a" );
+	a.download = `EmployeeList_${new Date().toISOString().match(/(^.*)T/)[1]}.json`;
+	a.href = url;
+	a.click();
+	window.URL.revokeObjectURL( url );
+}
+
+function convertEmployeesToCSV( employeesArray ){
+	var result = "";
+	
+	var keys = Object.keys( employeesArray[0] );
+	for ( key of keys ){
+		result = result.concat( `${key}` );
+		if ( key != keys[keys.length-1] )
+			result = result.concat( ',' );
+		else
+			result = result.concat( '\n' );
+	}
+	
+	for ( employee of employeesArray ){
+		for ( key of keys ){
+			result = result.concat( `${employee[key]}` );
+			if ( key != keys[keys.length-1] )
+				result = result.concat( ',' );
+			else 
+				result = result.concat( '\n' );
+		}
+	}
+	
+	var blob = new Blob( [result], { type: 'text/csv' } );
+	var url = window.URL.createObjectURL( blob );
+	var a = document.createElement( 'a' );
+	a.download = `EmployeeList_${new Date().toISOString().match(/(^.*)T/)[1]}.csv`;
+	a.href = url;
+	a.click();
+	window.URL.revokeObjectURL( url );
+}
+
+function parseEmployeeCards( outputType ){
+	if ( !outputType ){
+		console.error( "No output type" );
+		return;
+	}
+	
+	var employees = [];
+	var cards = document.getElementsByClassName('list-item-card');
+	for ( card of cards ){
+		var name = card.getElementsByClassName('item-name')[0].children[0].innerHTML;
+		var phone = card.getElementsByClassName('item-phone')[0].children[0].innerHTML;
+		var email = card.getElementsByClassName('item-email')[0].children[0].innerHTML;
+		
+		var hired = card.getElementsByClassName('multi-child')[0].children[0].children[1].innerHTML;
+		if ( hired == '--' )
+			hired = '';
+		var birthday = card.getElementsByClassName('multi-child')[0].children[1].children[1].innerHTML;
+		if ( birthday == '--' )
+			birthday = '';
+		
+		var positions = [];		
+		if ( outputType == 'json' ){
+			var items = card.getElementsByClassName('employee-positions')[0].getElementsByClassName('input-mini');
+			for ( item of items )
+				positions.push( item.innerHTML );
+		}
+		
+		var newEmployee = {};
+		newEmployee['name'] = name;
+		newEmployee['phone'] = phone;
+		newEmployee['email'] = email;
+		newEmployee['hired'] = hired;
+		newEmployee['birthday'] = birthday;
+		if ( positions.length > 0 )
+			newEmployee['positions'] = positions;
+		
+		employees.push( newEmployee );
+	}
+	
+	if ( employees.length < 1 )
+		return;
+	
+	switch ( outputType ){
+		case 'json':
+			convertEmployeesToJSON( employees );
+			break;
+		case 'csv':
+			convertEmployeesToCSV( employees );
+			break;
+	}	
+}
+
+function addEmployeeListButtons(){
+	var wrapper = document.getElementById( 'card-sorting-wrapper' );
+	
+	var optionsList = document.createElement( 'select' );
+	optionsList.id = 'selectedFormat';
+	optionsList.style = 'margin: 0px 8px 0px 50px;height:25px;color:#737373;background-color:#efe';
+	
+	var optCSV = document.createElement( 'option' );
+	optCSV.value = 'csv';
+	optCSV.innerHTML = 'CSV';
+	var optJSON = document.createElement( 'option' );
+	optJSON.value = 'json';
+	optJSON.innerHTML = 'JSON';
+	
+	var opts = [ optCSV, optJSON ];
+	
+	for ( opt of opts )
+		optionsList.appendChild( opt );
+	wrapper.appendChild( optionsList );
+	
+	var downloadButton = document.createElement( 'input' );
+	downloadButton.style = 'border: 1px solid #b4b4b4;background-color:#efe;border-radius:2px;height:25px;';
+	downloadButton.type = 'button';
+	downloadButton.value = 'Download Employee List In Selected Format';
+	downloadButton.addEventListener( 'click', function(){
+		var format = document.getElementById( 'selectedFormat' ).value;
+		parseEmployeeCards( format );
+	});	
+	wrapper.appendChild( downloadButton );
+}
