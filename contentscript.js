@@ -117,9 +117,8 @@ function sendTimeData(){
 				if ( confirm( confirmStr ) )
 					xhr.send( sendStr );
 			});
-		}else{
-			//console.log( "Skipping send!" );
-		}
+		}else
+			console.info( "Tried to send XHR but storage.shouldSend wasn't set to true!" );
 	});
 }
 
