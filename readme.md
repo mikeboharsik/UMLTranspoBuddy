@@ -12,4 +12,4 @@ Current features:
 Not only is this open source, but [it's available right now on the Chrome Web Store!](https://chrome.google.com/webstore/detail/uml-transportation-buddy/bfkmbblnbolddmpjilidejgbngefckcc)
 
 #### Credit to
-* [Ramon Meza](https://github.com/ramonmeza) for the inspiring the HR Direct feature
+* [Ramon Meza](https://github.com/ramonmeza) for the inspiring the HR Direct feature & minor tweaks.
