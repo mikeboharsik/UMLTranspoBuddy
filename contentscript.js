@@ -11,10 +11,10 @@ chrome.runtime.onMessage.addListener(
 			else
 				o = (x+1).toString();
 			n.html( o );
-			
+
 			if ( parseInt(n.html()) == parseInt(d.html()) ){
 				$('#exportButton').html( '<span id="done">Done!</span>' );
-				$('#exportButton').animate( { opacity: 0 }, 5000 ); 
+				$('#exportButton').animate( { opacity: 0 }, 5000 );
 			}
 		}
 		else{
@@ -91,26 +91,29 @@ function sendTimeData(){
 						location.reload();
 					}
 				};
-				
+
 				var startDate = data.timecardHours.startDateStr;
 				var dates = data.timecardHours.dates;
-				
+
 				var sendStr = `ICStateNum=${stateNum}&ICAction=TL_LINK_WRK_SUBMIT_PB&DERIVED_TL_WEEK_VIEW_BY_LIST$9$=Z&DATE_DAY1=${startDate}`;
-				
+
 				for ( var i = 0; i < dates.length; i++ )
 					sendStr = sendStr.concat( `&QTY_DAY${dates[i].dayNum}$0=${dates[i].hours.toFixed(3)}` );
-				
+
 				sendStr = sendStr.concat( `&TRC$0=STYSH` );
-				
+
 				var startDate = new Date( data.timecardHours.startDateStr );
 				var confirmStr = 'By clicking OK, you are confirming that the following information is accurate:\n\n';
 				for ( var i = 0; i < dates.length; i++ ){
 					var curDate = new Date( startDate );
 					curDate.setDate( startDate.getDate() + ( dates[i].dayNum - 1 ) );
-					confirmStr = confirmStr.concat( `${curDate.toLocaleDateString()}: ${dates[i].hours} hours\n` );
+
+					// Only display hours worked if it's more than 0
+					if(dates[i].hours != 0)
+						confirmStr = confirmStr.concat( `${curDate.toLocaleDateString()}: ${dates[i].hours} hours\n` );
 				}
 				confirmStr = confirmStr.concat( '\nYou are responsible for ensuring the hours you work are accurately reflected in HR Direct.' );
-				
+
 				if ( confirm( confirmStr ) )
 					xhr.send( sendStr );
 			});
@@ -123,9 +126,9 @@ function sendTimeData(){
 /* BEGIN ACTUAL WEBPAGE LOGIC */
 var isSupervisor = false;
 
-chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => { 
+chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 	if ( data.isSupervisor ) isSupervisor = data.isSupervisor;
-	
+
 	switch ( getPage() ){
 		case 'calendar':
 			chrome.runtime.sendMessage( { type: 'getCalendarEvents' }, (resp) => {});
@@ -138,7 +141,7 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 			}
 			if ( !data.calendar ){
 				var exportButton = document.getElementById( 'exportButton' );
-				
+
 				$('#checkBoxes').css( { display: 'none' } );
 				$('#exportButton').html( 'Select calendar!' );
 				exportButton.removeEventListener( 'click', handleButtonClick );
@@ -148,26 +151,26 @@ chrome.storage.local.get( [ 'isSupervisor', 'calendar' ], (data) => {
 
 		case 'routes':
 			chrome.storage.local.get( 'roadsterEnabled', ( data ) => {
-				if ( data.roadsterEnabled == true ) 
+				if ( data.roadsterEnabled == true )
 					doRoadsterStuff();
 			});
 			break;
-			
+
 		case 'attendance':
 			break;
 
 		case 'timecard':
 			timecard_addButton();
 			break;
-			
+
 		case 'hr':
 			sendTimeData();
 			break;
-			
+
 		case 'employeelist':
 			addEmployeeListButtons();
 			break;
-			
+
 		default:
 			console.log( 'Encountered an unhandled URL.' );
 	}
