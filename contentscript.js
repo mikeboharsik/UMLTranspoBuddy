@@ -112,7 +112,7 @@ function sendTimeData(){
 					if(dates[i].hours != 0)
 						confirmStr = confirmStr.concat( `${curDate.toLocaleDateString()}: ${dates[i].hours} hours\n` );
 				}
-				confirmStr = confirmStr.concat( '\nYou are responsible for ensuring the hours you work are accurately reflected in HR Direct.' );
+				confirmStr = confirmStr.concat( '\nAny dates not shown were interpreted to have 0 hours worked on them.\n\nYou are responsible for ensuring the hours you work are accurately reflected in HR Direct.' );
 
 				if ( confirm( confirmStr ) )
 					xhr.send( sendStr );
