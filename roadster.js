@@ -1,4 +1,19 @@
 var acc = document.getElementsByClassName( 'content' )[0];
+
+// Used to fold accordian on click
+var fold = false;
+
+$("#accordian .roadsterRoutesLogo").click(function() {
+	if(fold) {
+		$(this).parent().height(600);
+	} else {
+		$(this).parent().height(60);
+	}
+	
+	// Toggle bool
+	fold = !fold;
+});
+
 if ( acc )
 	acc.className = 'content accordian';
 
