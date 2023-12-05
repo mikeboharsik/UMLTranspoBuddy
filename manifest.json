@@ -4,7 +4,7 @@
 	"name": "UML Transportation Buddy",
 	"short_name": "UMLTranspoBuddy",
 	"description": "Adds functionality to TimeForge and RoadsterRoutes",
-	"version": "1.3.3",
+	"version": "1.3.5",
 	"homepage_url": "https://chrome.google.com/webstore/detail/timeforge-buddy/bfkmbblnbolddmpjilidejgbngefckcc",
   
 	"content_scripts": [ {
@@ -47,7 +47,10 @@
 	"permissions": [
 		"activeTab",
 		"storage",
-		"identity",
+		"identity"
+	],
+
+	"host_permissions": [
 		"https://*.uml.edu/routes/*",
 		"https://*.timeforge.com/Scheduler/*",
 		"https://sm-prd.hcm.umasscs.net/psp/hrprd92/EMPLOYEE/HRMS/c/ROLE_EMPLOYEE.TL_MSS_EE_SRCH_PRD.GBL"
